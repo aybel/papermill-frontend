@@ -58,10 +58,14 @@ const handleLogin = async () => {
   loading.value = true;
   error.value = null;
   try {
+    console.log('Intentando login...');
     const loginSuccess = await authStore.login(email.value, password.value);
+    console.log('Resultado login:', loginSuccess);
     if (loginSuccess) {
-      // Redirigir al dashboard o a la página de inicio
+      console.log('Login exitoso, redirigiendo a /home');
       router.push("/home");
+    } else {
+      console.log('Login fallido, no se redirige');
     }
   } catch (err: any) {
     // Manejo de errores para el usuario

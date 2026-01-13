@@ -1,6 +1,6 @@
 import api from '@/plugins/axios';
 
-const API_URL = import.meta.env.VITE_API_URL+"/v1";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export interface Supplier {
     id: number;

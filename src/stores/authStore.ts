@@ -35,18 +35,22 @@ export const useAuthStore = defineStore("auth", {
   actions: {
     async login(email: string, password: string) {
       try {
-        const response = await apiClient.post("v1/auth/login", {
+        console.log('Llamando a apiClient.post(auth/login)');
+        const response = await apiClient.post("auth/login", {
           email,
           password,
         });
+        console.log('Respuesta login:', response);
         const { access_token } = response.data;
 
         // Guardar el token en el estado y en localStorage
         this.token = access_token;
         localStorage.setItem("token", access_token);
+        console.log('Token guardado:', access_token);
 
         // Después de obtener el token, obtenemos los datos del usuario
-        await this.fetchUser();
+        //const userResult = await this.fetchUser();
+        //console.log('Resultado fetchUser:', userResult);
 
         // Redirigir al usuario a la página que intentaba visitar o al dashboard
         return true;
@@ -60,7 +64,7 @@ export const useAuthStore = defineStore("auth", {
     async fetchUser() {
       if (this.token) {
         try {
-          const response = await apiClient.get("v1/auth/me");
+          const response = await apiClient.get("auth/me");
           const { user, roles, permissions } = response.data;
 
           // Guardar los datos del usuario en el estado y en localStorage
