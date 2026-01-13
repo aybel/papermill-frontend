@@ -4,21 +4,22 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export interface Supplier {
     id: number;
-    code:string,
+    code: string,
     name: string;
     tax_id: string,
-    supplier_type_id: number;
-    supplier_status_id: number;
-    primary_contact_id: number;
+    supplier_type_id: number | null | undefined;
+    supplier_status_id: number | null | undefined;
+    primary_contact_id: number | null | undefined;
     quality_score: number;
     delivery_score: number;
-    payment_terms_id: number;
-    currency_id: number;
+    payment_terms_id: number | null | undefined;
+    currency_id: number | null | undefined;
     credit_limit: number;
     notes: string;
-    active: boolean;
-    created_at: string;
-    updated_at: string;
+    active: boolean | 1;
+    created_at: string | null;
+    updated_at: string | null;
+    deleted_at: string | null;
 }
 
 export const supplierService = {

@@ -21,7 +21,7 @@ const MainRoutes = {
     {
       path: "suppliers/create",
       name: "CreateSupplier",
-      component: () => import("@/views/Home.vue"),
+      component: () => import("@/views/suppliers/create.vue"),
     },
     {
       path: "suppliers/:id/edit",

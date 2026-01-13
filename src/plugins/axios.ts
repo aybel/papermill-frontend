@@ -25,4 +25,21 @@ apiClient.interceptors.request.use(
   }
 );
 
+// Interceptor de respuesta para manejar sesión expirada globalmente
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      // Limpiar sesión y redirigir al login
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('roles');
+      localStorage.removeItem('permissions');
+      //window.location.href = '/auth/login';
+      return;
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default apiClient;

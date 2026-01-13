@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { supplierService, type Supplier } from '@/services/supplierService';
 import { PencilIcon, TrashIcon, PlusIcon } from 'vue-tabler-icons';
 import { useRouter } from 'vue-router';
+import SupplierContactForm from '@/components/suppliers/SupplierContactForm.vue';
 
 const router = useRouter();
 
@@ -16,7 +17,7 @@ const headers = [
     { title: 'Nombre', key: 'name' },
     { title: 'RFC', key: 'tax_id' },
     { title: 'Limite de crédito', key: 'credit_limit' },
-    { title: 'Activo', key: 'active' },
+    { title: 'Activo', key: 'active', sortable: false, align: 'center' },
     { title: 'Acciones', key: 'actions', sortable: false, align: 'center' }
 ];
 
@@ -27,11 +28,6 @@ const loadSuppliers = async () => {
         suppliers.value = response.data || response;
     } catch (error: any) {
         let message = 'Error al cargar proveedores';
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            message = 'Sesión expirada o sin permisos. Por favor, inicia sesión nuevamente.';
-            // Redirigir al login
-            window.location.href = '/login';
-        }
         alert(message);
         console.error(message, error);
     } finally {
@@ -59,7 +55,24 @@ const handleDelete = async (item: Supplier) => {
 const handleCreate = () => {
     console.log('Crear nuevo proveedor');
     // Implementar navegación a creación
+    router.push({ name: 'CreateSupplier' });
 };
+
+const showContactDialog = ref(false);
+const selectedSupplier = ref<Supplier | null>(null);
+const selectedContact = ref<any>(null);
+
+function handleContacts(supplier: Supplier) {
+    selectedSupplier.value = supplier;
+    selectedContact.value = null;
+    showContactDialog.value = true;
+}
+
+function closeContactDialog() {
+    showContactDialog.value = false;
+    selectedSupplier.value = null;
+    selectedContact.value = null;
+}
 
 onMounted(() => {
     loadSuppliers();
@@ -91,6 +104,11 @@ onMounted(() => {
             <v-data-table :headers="headers" :items="suppliers" :search="search" :loading="loading" :items-per-page="10"
                 class="elevation-1" loading-text="Cargando proveedores..."
                 no-data-text="No hay proveedores registrados">
+                <template v-slot:item.active="{ item }">
+                    <span :style="{ color: item.active === 1 ? 'green' : 'red', 'font-weight': 'bold' }">
+                        {{ item.active === 1 ? 'Sí' : 'No' }}
+                    </span>
+                </template>
                 <template v-slot:item.actions="{ item }">
                     <v-btn icon size="small" variant="text" color="primary" @click="handleEdit(item)">
                         <PencilIcon size="20" />
@@ -98,8 +116,19 @@ onMounted(() => {
                     <v-btn icon size="small" variant="text" color="error" @click="handleDelete(item)">
                         <TrashIcon size="20" />
                     </v-btn>
+                    <v-btn icon size="small" variant="text" color="info" @click="handleContacts(item)">
+                        <v-icon>mdi-account-multiple-outline</v-icon>
+                    </v-btn>
                 </template>
             </v-data-table>
         </v-card-text>
     </v-card>
+
+    <!-- Diálogo para contactos -->
+    <v-dialog v-model="showContactDialog" max-width="600">
+        <template v-slot:default>
+            <SupplierContactForm v-if="selectedSupplier" :contactData="selectedContact" @save="closeContactDialog"
+                @cancel="closeContactDialog" />
+        </template>
+    </v-dialog>
 </template>
