@@ -5,7 +5,8 @@
 			<v-form @submit.prevent="handleSubmit" ref="formRef" v-model="formValid">
 				<v-row>
 					<v-col cols="12" md="6">
-						<v-text-field v-model="form.code" label="Código" :rules="[rules.required,rules.codeLength]" required />
+						<v-text-field v-model="form.code" label="Código" :rules="[rules.required, rules.codeLength]"
+							required />
 					</v-col>
 					<v-col cols="12" md="6">
 						<v-text-field v-model="form.name" label="Nombre" :rules="[rules.required]" required />
@@ -35,11 +36,7 @@
 					</v-col>
 					<!-- Campos de calidad y entrega removidos -->
 					<v-col cols="12" md="6">
-						<v-switch
-							v-model="form.active"
-							label="Activo"
-							:color="form.active ? 'success' : 'error'"
-						/>
+						<v-switch v-model="form.active" label="Activo" :color="form.active ? 'success' : 'error'" />
 					</v-col>
 					<v-col cols="12">
 						<v-textarea v-model="form.notes" label="Notas" rows="2" />
@@ -60,6 +57,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
+import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { supplierService } from '@/services/supplierService';
 import { catalogsService } from '@/services/catalogsService';
@@ -123,8 +121,27 @@ const handleSubmit = async () => {
 			payment_terms_id: form.payment_terms_id ?? null,
 			currency_id: form.currency_id ?? null
 		};
-		await supplierService.create(payload);
-		router.push({ name: 'Suppliers' });
+
+		const response = await supplierService.create(payload);
+		console.log(response);
+		
+		if (response.success) {
+			Swal.fire({
+				icon: 'success',
+				title: 'Proveedor creado',
+				text: response.message || 'El registro se guardó correctamente',
+				confirmButtonText: 'Aceptar',
+			}).then(() => {
+				router.push({ name: 'Suppliers' });
+			});
+		} else {
+			Swal.fire({
+				icon: 'error',
+				title: 'Error',
+				text: response?.message || 'No se pudo crear el proveedor',
+				confirmButtonText: 'Aceptar',
+			});
+		}
 	} catch (e) {
 		alert('Error al crear proveedor');
 	} finally {

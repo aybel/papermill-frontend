@@ -35,7 +35,7 @@ export const supplierService = {
 
     async create(supplier: Partial<Supplier>) {
         const response = await api.post(`${API_URL}/suppliers`, supplier);
-        return response.data.data;
+        return response.data;
     },
 
     async update(id: number, supplier: Partial<Supplier>) {
