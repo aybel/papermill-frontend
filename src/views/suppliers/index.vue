@@ -38,7 +38,7 @@ const loadSuppliers = async () => {
 const handleEdit = (item: Supplier) => {
     console.log('Editar proveedor:', item);
     // Implementar navegación a edición
-    router.push({ name: 'SupplierEdit', params: { id: item.id } });
+    router.push({ name: 'EditSupplier', params: { id: item.id } });
 };
 
 const handleDelete = async (item: Supplier) => {
@@ -53,7 +53,6 @@ const handleDelete = async (item: Supplier) => {
 };
 
 const handleCreate = () => {
-    console.log('Crear nuevo proveedor');
     // Implementar navegación a creación
     router.push({ name: 'CreateSupplier' });
 };
@@ -72,6 +71,22 @@ function closeContactDialog() {
     showContactDialog.value = false;
     selectedSupplier.value = null;
     selectedContact.value = null;
+}
+
+function exportToPDF() {
+    alert('Se hizo clic en exportar a PDF');
+}
+
+function exportToExcel() {
+    alert('Se hizo clic en exportar a Excel');
+}
+
+function exportAs(type: string) {
+    if (type === 'pdf') {
+        exportToPDF();
+    } else if (type === 'excel') {
+        exportToExcel();
+    }
 }
 
 onMounted(() => {
@@ -94,13 +109,31 @@ onMounted(() => {
         </v-card-item>
 
         <v-card-text>
-            <v-row class="mb-4">
-                <v-col cols="12" md="4">
+
+            <v-row class="mb-4 align-center">
+                <v-col cols="12" md="8">
                     <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" label="Buscar proveedor"
                         variant="outlined" density="compact" hide-details />
                 </v-col>
+                <v-col cols="12" md="4" class="d-flex justify-end">
+                    <v-menu offset-y>
+                        <template #activator="{ props }">
+                            <v-btn color="secondary" v-bind="props">
+                                Exportar
+                                <v-icon right>mdi-chevron-down</v-icon>
+                            </v-btn>
+                        </template>
+                        <v-list>
+                            <v-list-item @click="exportAs('pdf')">
+                                <v-list-item-title>PDF</v-list-item-title>
+                            </v-list-item>
+                            <v-list-item @click="exportAs('excel')">
+                                <v-list-item-title>Excel</v-list-item-title>
+                            </v-list-item>
+                        </v-list>
+                    </v-menu>
+                </v-col>
             </v-row>
-
             <v-data-table :headers="headers" :items="suppliers" :search="search" :loading="loading" :items-per-page="10"
                 class="elevation-1" loading-text="Cargando proveedores..."
                 no-data-text="No hay proveedores registrados">
