@@ -35,7 +35,7 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('user');
       localStorage.removeItem('roles');
       localStorage.removeItem('permissions');
-      //window.location.href = '/auth/login';
+      window.location.href = '/';
       return;
     }
     return Promise.reject(error);

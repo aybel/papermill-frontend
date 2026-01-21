@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import Swal from 'sweetalert2';
 import { supplierService, type Supplier } from '@/services/supplierService';
 import { PencilIcon, TrashIcon, PlusIcon } from 'vue-tabler-icons';
 import { useRouter } from 'vue-router';
@@ -42,12 +43,24 @@ const handleEdit = (item: Supplier) => {
 };
 
 const handleDelete = async (item: Supplier) => {
-    if (confirm(`¿Está seguro de eliminar al proveedor ${item.name}?`)) {
+    const result = await Swal.fire({
+        title: '¿Está seguro?',
+        text: `¿Está seguro de eliminar al proveedor ${item.name}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+    });
+    if (result.isConfirmed) {
         try {
             await supplierService.delete(item.id);
             await loadSuppliers();
+            Swal.fire('Eliminado', 'El proveedor ha sido eliminado.', 'success');
         } catch (error) {
             console.error('Error al eliminar proveedor:', error);
+            Swal.fire('Error', 'No se pudo eliminar el proveedor.', 'error');
         }
     }
 };
@@ -73,12 +86,32 @@ function closeContactDialog() {
     selectedContact.value = null;
 }
 
-function exportToPDF() {
-    alert('Se hizo clic en exportar a PDF');
+async function exportToPDF() {
+    try {
+        const response = await supplierService.exportAs('pdf', { active: 1 });
+        downloadFile(response, 'proveedores.pdf', 'application/pdf');
+    } catch (error: any) {
+        const message = error?.response?.data?.message || 'Error al exportar a PDF';
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: message,
+        });
+    }
 }
 
-function exportToExcel() {
-    alert('Se hizo clic en exportar a Excel');
+async function exportToExcel() {
+    try {
+        const response = await supplierService.exportAs('excel', { active: 1 });
+        downloadFile(response, 'proveedores.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    } catch (error: any) {
+        const message = error?.response?.data?.message || 'Error al exportar a Excel';
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: message,
+        });
+    }
 }
 
 function exportAs(type: string) {
@@ -87,6 +120,18 @@ function exportAs(type: string) {
     } else if (type === 'excel') {
         exportToExcel();
     }
+}
+
+function downloadFile(data: any, filename: string, mimeType: string) {
+    // Si el backend responde con un blob, usar esto:
+    const blob = (data instanceof Blob) ? data : new Blob([data], { type: mimeType });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
 }
 
 onMounted(() => {

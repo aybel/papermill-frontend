@@ -46,5 +46,15 @@ export const supplierService = {
     async delete(id: number) {
         const response = await api.delete(`${API_URL}/suppliers/${id}`);
         return response.data.data;
+    },
+
+    async exportAs(type: string, filters: Record<string, any> = {}) {
+        const response = await api.post(`${API_URL}/reports/export`,
+            {
+                "type": "suppliers",
+                "format": type,
+                "filters": filters
+            });
+        return response.data;
     }
 };
