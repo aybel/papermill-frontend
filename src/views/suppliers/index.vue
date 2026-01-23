@@ -2,9 +2,10 @@
 import { ref, onMounted } from 'vue';
 import Swal from 'sweetalert2';
 import { supplierService, type Supplier } from '@/services/supplierService';
+import { supplierContactsService, type SupplierContacts } from '@/services/supplierContactsService';
 import { PencilIcon, TrashIcon, PlusIcon } from 'vue-tabler-icons';
 import { useRouter } from 'vue-router';
-import SupplierContactForm from '@/components/suppliers/SupplierContactForm.vue';
+import SupplierContactForm from './components/SupplierContactForm.vue';
 
 const router = useRouter();
 
@@ -70,14 +71,28 @@ const handleCreate = () => {
     router.push({ name: 'CreateSupplier' });
 };
 
+
 const showContactDialog = ref(false);
 const selectedSupplier = ref<Supplier | null>(null);
 const selectedContact = ref<any>(null);
+const supplierContacts = ref<SupplierContacts[]>([]);
 
-function handleContacts(supplier: Supplier) {
+async function handleContacts(supplier: Supplier) {
     selectedSupplier.value = supplier;
     selectedContact.value = null;
+    supplierContacts.value = [];
     showContactDialog.value = true;
+    try {
+        const response = await supplierContactsService.search({supplier_id: supplier.id });
+        supplierContacts.value = response.data || response;
+    } catch (error) {
+        console.error('Error al cargar contactos:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudieron cargar los contactos del proveedor.'
+        });
+    }
 }
 
 function closeContactDialog() {
@@ -203,10 +218,10 @@ onMounted(() => {
     </v-card>
 
     <!-- Diálogo para contactos -->
-    <v-dialog v-model="showContactDialog" max-width="600">
+    <v-dialog v-model="showContactDialog" max-width="1200px">
         <template v-slot:default>
-            <SupplierContactForm v-if="selectedSupplier" :contactData="selectedContact" @save="closeContactDialog"
-                @cancel="closeContactDialog" />
+            <SupplierContactForm v-if="selectedSupplier" :contactData="selectedContact" :contacts="supplierContacts"
+                @save="closeContactDialog" @cancel="closeContactDialog" />
         </template>
     </v-dialog>
 </template>

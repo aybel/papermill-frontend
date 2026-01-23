@@ -54,7 +54,9 @@ export const supplierService = {
                 "type": "suppliers",
                 "format": type,
                 "filters": filters
-            });
+            }, {
+            responseType: 'blob'
+        });
         return response.data;
     }
 };
