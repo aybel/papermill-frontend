@@ -5,10 +5,6 @@
 			<v-form @submit.prevent="handleSubmit" ref="formRef" v-model="formValid">
 				<v-row>
 					<v-col cols="12" md="6">
-						<v-text-field v-model="form.code" label="Código" :rules="[rules.required, rules.codeLength]"
-							required />
-					</v-col>
-					<v-col cols="12" md="6">
 						<v-text-field v-model="form.name" label="Nombre" :rules="[rules.required]" required />
 					</v-col>
 					<v-col cols="12" md="6">
@@ -61,6 +57,8 @@ import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { supplierService } from '@/services/supplierService';
 import { catalogsService } from '@/services/catalogsService';
+import { firstError } from '@/utils/errors';
+import { showSwal } from '@/utils/alerts';
 
 const router = useRouter();
 const loading = ref(false);
@@ -68,7 +66,6 @@ const formValid = ref(true);
 const formRef = ref();
 
 const form = reactive({
-	code: '',
 	name: '',
 	tax_id: '',
 	supplier_type_id: null as number | null | undefined,
@@ -84,7 +81,7 @@ const supplierTypes = ref([]);
 const supplierStatuses = ref([]);
 const paymentTerms = ref([]);
 const currencies = ref([]);
-
+const errors = ref<Record<string, string[]>>({});
 const rules = {
 	required: (v: any) => !!v || 'Campo requerido',
 	numeric: (v: any) => !isNaN(Number(v)) || 'Debe ser numérico',
@@ -112,6 +109,7 @@ const fetchCatalogs = async () => {
 const handleSubmit = async () => {
 	if (!formRef.value?.validate()) return;
 	loading.value = true;
+	errors.value = {};
 	try {
 		// Convertir undefined a null para los campos *_id si el backend lo requiere
 		const payload = {
@@ -124,7 +122,7 @@ const handleSubmit = async () => {
 
 		const response = await supplierService.create(payload);
 		console.log(response);
-		
+
 		if (response.success) {
 			Swal.fire({
 				icon: 'success',
@@ -142,8 +140,15 @@ const handleSubmit = async () => {
 				confirmButtonText: 'Aceptar',
 			});
 		}
-	} catch (e) {
-		alert('Error al crear proveedor');
+	} catch (err: any) {
+		console.error('Error guardando contacto:', err);
+		if (err?.response?.status === 422) {
+			errors.value = err.response.data?.errors || {};
+			const msg = firstError(errors.value) || 'Errores de validación';
+			showSwal({ icon: 'error', title: 'Validación', text: msg });
+		} else {
+			showSwal({ icon: 'error', title: 'Error', text: 'Error inesperado' });
+		}
 	} finally {
 		loading.value = false;
 	}

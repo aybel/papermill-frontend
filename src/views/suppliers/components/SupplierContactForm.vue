@@ -35,7 +35,9 @@
         </v-row>
         <v-row class="mt-2">
           <v-col cols="12" class="text-right">
-            <v-btn color="primary" type="submit">{{ editIndex === null ? 'Guardar contacto' : 'Actualizar contacto' }}</v-btn>
+            <v-btn color="primary" type="submit" :loading="saving">
+              {{ editIndex === null ? 'Guardar contacto' : 'Actualizar contacto' }}
+            </v-btn>
             <v-btn color="secondary" variant="text" @click="resetForm">Cancelar</v-btn>
           </v-col>
         </v-row>
@@ -47,8 +49,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import ContactsTable from './ContactsTable.vue';
+import { supplierContactsService } from '@/services/supplierContactsService';
+import { firstError } from '@/utils/errors';
+import { showSwal } from '@/utils/alerts';
 
 const emit = defineEmits(['save', 'cancel']);
 const props = defineProps({
@@ -59,16 +64,23 @@ const props = defineProps({
   contacts: {
     type: Array,
     default: () => []
+  },
+  supplierId: {
+    type: Number,
+    required: true
   }
 });
 
 const contactFormRef = ref();
 const formValid = ref(true);
+const errors = ref<Record<string, string[]>>({});
 
 const contacts = ref([...props.contacts]);
-const editIndex = ref<number|null>(null);
+const editIndex = ref<number | null>(null);
+const saving = ref(false);
 
 const contact = reactive({
+  id: null as number | null,
   name: '',
   email: '',
   phone: '',
@@ -85,15 +97,65 @@ const rules = {
   required: (v: any) => !!v || 'Campo requerido',
 };
 
-function handleSubmit() {
-  if (!contactFormRef.value?.validate()) return;
-  if (editIndex.value === null) {
-    contacts.value.push({ ...contact });
-  } else {
-    contacts.value[editIndex.value] = { ...contact };
+// Mantiene la tabla sincronizada con los contactos que llegan del padre
+watch(
+  () => props.contacts,
+  (newContacts) => {
+    contacts.value = mapFromApi(newContacts);
+  },
+  { immediate: true }
+);
+
+function mapFromApi(list: any[] = []) {
+  return list.map((c: any) => ({
+    ...c,
+    is_primary: c.is_primary ?? (c.primary === 1 || c.primary === true),
+    is_active: c.is_active ?? (c.active === 1 || c.active === true),
+  }));
+}
+
+async function handleSubmit() {
+  const validation = await contactFormRef.value?.validate();
+  if (!validation?.valid) return;
+  saving.value = true;
+  errors.value = {};
+  try {
+    const payload = {
+      supplier_id: props.supplierId,
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+      mobile: contact.mobile,
+      position: contact.position,
+      department: contact.department,
+      notes: contact.notes,
+      primary: contact.is_primary ? 1 : 0,
+      active: contact.is_active ? 1 : 0,
+    };
+
+    if (contact.id) {
+      await supplierContactsService.update(contact.id, payload);
+    } else {
+      await supplierContactsService.create(payload);
+    }
+
+    const refreshed = await supplierContactsService.search({ supplier_id: props.supplierId, is_active: 1, order_by_: "is_primary desc" });
+    contacts.value = mapFromApi(refreshed || []);
+    emit('save', contacts.value);
+    resetForm();
+    showSwal({ icon: 'success', title: 'Contacto guardado', timer: 1200, showConfirmButton: false });
+  } catch (err: any) {
+    console.error('Error guardando contacto:', err);
+    if (err?.response?.status === 422) {
+      errors.value = err.response.data?.errors || {};
+      const msg = firstError(errors.value) || 'Errores de validación';
+      showSwal({ icon: 'error', title: 'Validación', text: msg });
+    } else {
+      showSwal({ icon: 'error', title: 'Error', text: 'Error inesperado' });
+    }
+  } finally {
+    saving.value = false;
   }
-  emit('save', contacts.value);
-  resetForm();
 }
 
 function editContact(index: number) {
@@ -101,14 +163,31 @@ function editContact(index: number) {
   editIndex.value = index;
 }
 
-function deleteContact(index: number) {
-  contacts.value.splice(index, 1);
-  emit('save', contacts.value);
-  resetForm();
+async function deleteContact(index: number) {
+  const toDelete = contacts.value[index];
+  if (!toDelete?.id) {
+    contacts.value.splice(index, 1);
+    emit('save', contacts.value);
+    resetForm();
+    return;
+  }
+
+  try {
+    await supplierContactsService.delete(toDelete.id);
+    const refreshed = await supplierContactsService.search({ supplier_id: props.supplierId, is_active: 1, order_by_: "is_primary desc" });
+    contacts.value = mapFromApi(refreshed || []);
+    emit('save', contacts.value);
+    resetForm();
+    showSwal({ icon: 'success', title: 'Contacto eliminado', timer: 1200, showConfirmButton: false });
+  } catch (error) {
+    console.error('Error eliminando contacto:', error);
+    showSwal({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el contacto.' });
+  }
 }
 
 function resetForm() {
   Object.assign(contact, {
+    id: null,
     name: '',
     email: '',
     phone: '',
@@ -123,3 +202,13 @@ function resetForm() {
   contactFormRef.value?.resetValidation();
 }
 </script>
+
+<style scoped>
+:global(.swal-front) {
+  z-index: 3000;
+}
+
+:global(.swal-front-container) {
+  z-index: 3000 !important;
+}
+</style>

@@ -1,3 +1,87 @@
+<template>
+    <v-card elevation="10" class="withbg full-width-card">
+        <v-card-item>
+            <div class="d-sm-flex align-center justify-space-between pt-sm-2">
+                <v-card-title class="text-h5">Gestión de Proveedores</v-card-title>
+                <div class="my-sm-0 my-2">
+                    <v-btn color="primary" @click="handleCreate">
+                        <PlusIcon class="mr-2" size="20" />
+                        Nuevo Proveedor
+                    </v-btn>
+                </div>
+            </div>
+        </v-card-item>
+
+        <v-card-text>
+
+            <v-row class="mb-4 align-center">
+                <v-col cols="12" md="8">
+                    <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" label="Buscar proveedor"
+                        variant="outlined" density="compact" hide-details />
+                </v-col>
+                <v-col cols="12" md="4" class="d-flex justify-end">
+                    <v-menu offset-y>
+                        <template #activator="{ props }">
+                            <v-btn color="secondary" v-bind="props">
+                                Exportar
+                                <v-icon right>mdi-chevron-down</v-icon>
+                            </v-btn>
+                        </template>
+                        <v-list>
+                            <v-list-item @click="exportAs('pdf')">
+                                <v-list-item-title>PDF</v-list-item-title>
+                            </v-list-item>
+                            <v-list-item @click="exportAs('excel')">
+                                <v-list-item-title>Excel</v-list-item-title>
+                            </v-list-item>
+                        </v-list>
+                    </v-menu>
+                </v-col>
+            </v-row>
+            <v-data-table :headers="headers" :items="suppliers" :search="search" :loading="loading" :items-per-page="10"
+                class="elevation-1" loading-text="Cargando proveedores..."
+                no-data-text="No hay proveedores registrados">
+                <template v-slot:item.active="{ item }">
+                    <span :style="{ color: item.active === 1 ? 'green' : 'red', 'font-weight': 'bold' }">
+                        {{ item.active === 1 ? 'Sí' : 'No' }}
+                    </span>
+                </template>
+                <template v-slot:item.actions="{ item }">
+                    <v-btn icon size="small" variant="text" color="primary" @click="handleEdit(item)">
+                        <PencilIcon />
+                    </v-btn>
+                    <v-btn icon size="small" variant="text" color="error" @click="handleDelete(item)">
+                        <TrashIcon />
+                    </v-btn>
+                    <v-btn icon size="small" variant="text" color="info" @click="handleContacts(item)">
+                        <v-icon>mdi-account-multiple-outline</v-icon>
+                    </v-btn>
+                    <v-btn icon size="small" variant="text" color="secondary" @click="handleShow(item)">
+                        <v-icon>mdi-eye-outline</v-icon>
+                    </v-btn>
+                </template>
+            </v-data-table>
+        </v-card-text>
+    </v-card>
+
+    <!-- Diálogo para contactos -->
+    <v-dialog v-model="showContactDialog" max-width="1200px">
+        <template v-slot:default>
+            <SupplierContactForm v-if="selectedSupplier" :supplier-id="selectedSupplier?.id"
+                :contactData="selectedContact" :contacts="supplierContacts" @save="syncContacts"
+                @cancel="closeContactDialog" />
+        </template>
+    </v-dialog>
+</template>
+
+<style scoped>
+.full-width-card {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+</style>
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import Swal from 'sweetalert2';
@@ -71,6 +155,12 @@ const handleCreate = () => {
     router.push({ name: 'CreateSupplier' });
 };
 
+const handleShow = (item: Supplier) => {
+    // Implementar navegación a vista detallada
+    router.push({ name: 'ShowSupplier', params: { id: item.id } });
+}
+
+
 
 const showContactDialog = ref(false);
 const selectedSupplier = ref<Supplier | null>(null);
@@ -83,8 +173,8 @@ async function handleContacts(supplier: Supplier) {
     supplierContacts.value = [];
     showContactDialog.value = true;
     try {
-        const response = await supplierContactsService.search({supplier_id: supplier.id });
-        supplierContacts.value = response.data || response;
+        const response = await supplierContactsService.search({ supplier_id: supplier.id, is_active: 1, order_by_: "is_primary desc" });
+        supplierContacts.value = response || [];
     } catch (error) {
         console.error('Error al cargar contactos:', error);
         Swal.fire({
@@ -99,6 +189,11 @@ function closeContactDialog() {
     showContactDialog.value = false;
     selectedSupplier.value = null;
     selectedContact.value = null;
+}
+
+function syncContacts(updated: SupplierContacts[]) {
+    supplierContacts.value = updated;
+    // Se mantiene el diálogo abierto para seguir viendo/gestionando la tabla
 }
 
 async function exportToPDF() {
@@ -153,75 +248,3 @@ onMounted(() => {
     loadSuppliers();
 });
 </script>
-
-<template>
-    <v-card elevation="10" class="withbg">
-        <v-card-item>
-            <div class="d-sm-flex align-center justify-space-between pt-sm-2">
-                <v-card-title class="text-h5">Gestión de Proveedores</v-card-title>
-                <div class="my-sm-0 my-2">
-                    <v-btn color="primary" @click="handleCreate">
-                        <PlusIcon class="mr-2" size="20" />
-                        Nuevo Proveedor
-                    </v-btn>
-                </div>
-            </div>
-        </v-card-item>
-
-        <v-card-text>
-
-            <v-row class="mb-4 align-center">
-                <v-col cols="12" md="8">
-                    <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" label="Buscar proveedor"
-                        variant="outlined" density="compact" hide-details />
-                </v-col>
-                <v-col cols="12" md="4" class="d-flex justify-end">
-                    <v-menu offset-y>
-                        <template #activator="{ props }">
-                            <v-btn color="secondary" v-bind="props">
-                                Exportar
-                                <v-icon right>mdi-chevron-down</v-icon>
-                            </v-btn>
-                        </template>
-                        <v-list>
-                            <v-list-item @click="exportAs('pdf')">
-                                <v-list-item-title>PDF</v-list-item-title>
-                            </v-list-item>
-                            <v-list-item @click="exportAs('excel')">
-                                <v-list-item-title>Excel</v-list-item-title>
-                            </v-list-item>
-                        </v-list>
-                    </v-menu>
-                </v-col>
-            </v-row>
-            <v-data-table :headers="headers" :items="suppliers" :search="search" :loading="loading" :items-per-page="10"
-                class="elevation-1" loading-text="Cargando proveedores..."
-                no-data-text="No hay proveedores registrados">
-                <template v-slot:item.active="{ item }">
-                    <span :style="{ color: item.active === 1 ? 'green' : 'red', 'font-weight': 'bold' }">
-                        {{ item.active === 1 ? 'Sí' : 'No' }}
-                    </span>
-                </template>
-                <template v-slot:item.actions="{ item }">
-                    <v-btn icon size="small" variant="text" color="primary" @click="handleEdit(item)">
-                        <PencilIcon size="20" />
-                    </v-btn>
-                    <v-btn icon size="small" variant="text" color="error" @click="handleDelete(item)">
-                        <TrashIcon size="20" />
-                    </v-btn>
-                    <v-btn icon size="small" variant="text" color="info" @click="handleContacts(item)">
-                        <v-icon>mdi-account-multiple-outline</v-icon>
-                    </v-btn>
-                </template>
-            </v-data-table>
-        </v-card-text>
-    </v-card>
-
-    <!-- Diálogo para contactos -->
-    <v-dialog v-model="showContactDialog" max-width="1200px">
-        <template v-slot:default>
-            <SupplierContactForm v-if="selectedSupplier" :contactData="selectedContact" :contacts="supplierContacts"
-                @save="closeContactDialog" @cancel="closeContactDialog" />
-        </template>
-    </v-dialog>
-</template>

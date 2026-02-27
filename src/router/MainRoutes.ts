@@ -1,3 +1,5 @@
+import path from "path";
+
 const MainRoutes = {
   path: "/",
   meta: {
@@ -32,6 +34,11 @@ const MainRoutes = {
       path: "suppliers/:id",
       name: "SupplierDetail",
       component: () => import("@/views/Home.vue"),
+    },
+    {
+      path: "suppliers/:id",
+      name: "ShowSupplier",
+      component: () => import("@/views/suppliers/show.vue"),
     },
     
     // Contactos de proveedores
