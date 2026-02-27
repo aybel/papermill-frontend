@@ -12,57 +12,70 @@
 						<v-textarea v-model="form.description" label="Descripción" rows="2" />
 					</v-col>
 
-					<v-col cols="12" md="4">
-						<v-text-field v-model.number="form.category_id" label="Categoría (ID)" type="number" />
+					<v-col cols="12" md="6">
+						<v-select v-model="form.category_id as any" :items="categories" item-title="name"
+							item-value="id" label="Categoría" :rules="[rules.required]" required />
 					</v-col>
 					<v-col cols="12" md="4">
-						<v-text-field v-model="form.material_type_id" label="Tipo de material" />
+						<v-select v-model="form.material_type_id as any" :items="materialTypes" item-title="name"
+							item-value="id" label="Tipo de material" :rules="[rules.required]" required />
 					</v-col>
+
 					<v-col cols="12" md="4">
-						<v-text-field v-model="form.unit_of_measure_id" label="Unidad de medida" />
+						<v-select v-model="form.unit_of_measure_id as any" :items="unitsOfMeasure" item-title="name"
+							item-value="id" label="Unidad de medida" :rules="[rules.required]" required />
 					</v-col>
 
 					<v-col cols="12" md="3">
-						<v-text-field v-model.number="form.current_stock" label="Stock actual" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.current_stock" label="Stock actual" type="number"
+							:rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 					<v-col cols="12" md="3">
-						<v-text-field v-model.number="form.min_stock" label="Stock mínimo" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.min_stock" label="Stock mínimo" type="number"
+							:rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 					<v-col cols="12" md="3">
-						<v-text-field v-model.number="form.max_stock" label="Stock máximo" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.max_stock" label="Stock máximo" type="number"
+							:rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 					<v-col cols="12" md="3">
-						<v-text-field v-model.number="form.safety_stock" label="Stock de seguridad" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.safety_stock" label="Stock de seguridad" type="number"
+							:rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 
 					<v-col cols="12" md="3">
-						<v-text-field v-model.number="form.reorder_point" label="Punto de reorden" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.reorder_point" label="Punto de reorden" type="number"
+							:rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 					<v-col cols="12" md="3">
-						<v-text-field v-model.number="form.avg_unit_cost" label="Costo prom. unitario" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.avg_unit_cost" label="Costo prom. unitario" type="number"
+							:rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 					<v-col cols="12" md="3">
-						<v-text-field v-model.number="form.last_purchase_price" label="Último precio de compra" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.last_purchase_price" label="Último precio de compra"
+							type="number" :rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 					<v-col cols="12" md="3">
 						<v-text-field v-model.number="form.currency_id" label="Moneda (ID)" type="number" />
 					</v-col>
 
 					<v-col cols="12" md="4">
-						<v-text-field v-model.number="form.grammage" label="Gramaje" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.grammage" label="Gramaje" type="number"
+							:rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 					<v-col cols="12" md="4">
-						<v-text-field v-model.number="form.width" label="Ancho" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.width" label="Ancho" type="number"
+							:rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 					<v-col cols="12" md="4">
-						<v-text-field v-model.number="form.length" label="Largo" type="number" :rules="[rules.numeric, rules.nonNegative]" />
+						<v-text-field v-model.number="form.length" label="Largo" type="number"
+							:rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
 
 					<v-col cols="12" md="6">
 						<v-text-field v-model="form.color" label="Color" />
 					</v-col>
 				</v-row>
-
 				<v-row class="mt-4">
 					<v-col cols="12" class="text-right">
 						<v-btn color="primary" type="submit" :loading="loading">Guardar</v-btn>
@@ -75,15 +88,25 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { materialService, type Material } from '@/services/materialService';
+import { firstError } from '@/utils/errors';
+import { showSwal } from '@/utils/alerts';
+import { materialTypeService } from '@/services/materialTypeService';
+import { materialCategoryService } from '@/services/materialCategories';
+import { unitsOfMeasureService } from '@/services/unitsOfMeasureService';
+import { c } from 'vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf';
 
 const router = useRouter();
 const loading = ref(false);
 const formValid = ref(true);
 const formRef = ref();
+const categories = ref([]);
+const materialTypes = ref([]);
+const unitsOfMeasure = ref([]);
+const errors = ref<Record<string, string[]>>({});
 
 const form = reactive<Partial<Material>>({
 	name: '',
@@ -104,7 +127,17 @@ const form = reactive<Partial<Material>>({
 	length: 0,
 	color: '',
 });
-
+const fetchSelects = async () => {
+	const [categories, materialTypes, unitsOfMeasure] = await Promise.all([
+		materialCategoryService.getAll(),
+		materialTypeService.getAll(),
+		unitsOfMeasureService.getAll(),
+	]);
+	
+	categories.value = categories;
+	materialTypes.value = materialTypes;
+	unitsOfMeasure.value = unitsOfMeasure;
+};
 const rules = {
 	required: (v: any) => !!v || 'Campo requerido',
 	numeric: (v: any) => !isNaN(Number(v)) || 'Debe ser numérico',
@@ -125,21 +158,40 @@ const handleSubmit = async () => {
 		};
 
 		const response = await materialService.create(payload);
-		if (response?.success || response) {
+		if (response.success) {
 			Swal.fire({
 				icon: 'success',
 				title: 'Material creado',
-				text: 'El registro se guardó correctamente',
+				text: response.message || 'El registro se guardó correctamente',
 				confirmButtonText: 'Aceptar',
-			}).then(() => router.push({ name: 'Materials' }));
+			}).then(() => {
+				router.push({ name: 'Materials' });
+			});
+		} else {
+			Swal.fire({
+				icon: 'error',
+				title: 'Error',
+				text: response?.message || 'No se pudo crear el material',
+				confirmButtonText: 'Aceptar',
+			});
 		}
-	} catch (error: any) {
-		const message = error?.response?.data?.message || 'No se pudo crear el material';
-		Swal.fire({ icon: 'error', title: 'Error', text: message });
+	} catch (err: any) {
+		console.error('Error guardando material:', err);
+		if (err?.response?.status === 422) {
+			errors.value = err.response.data?.errors || {};
+			const msg = firstError(errors.value) || 'Errores de validación';
+			showSwal({ icon: 'error', title: 'Validación', text: msg });
+		} else {
+			showSwal({ icon: 'error', title: 'Error', text: 'Error inesperado' });
+		}
 	} finally {
 		loading.value = false;
 	}
 };
+
+onMounted(async () => {
+	await fetchSelects();
+});
 
 const goBack = () => router.push({ name: 'Materials' });
 </script>
