@@ -59,22 +59,22 @@ const MainRoutes = {
     {
       path: "materials",
       name: "Materials",
-      component: () => import("@/views/Home.vue"),
+      component: () => import("@/views/materials/index.vue"),
     },
     {
       path: "materials/create",
-      name: "MaterialCreate",
-      component: () => import("@/views/Home.vue"),
+      name: "CreateMaterial",
+      component: () => import("@/views/materials/create.vue"),
     },
     {
       path: "materials/:id/edit",
-      name: "MaterialEdit",
-      component: () => import("@/views/Home.vue"),
+      name: "EditMaterial",
+      component: () => import("@/views/materials/edit.vue"),
     },
     {
       path: "materials/:id",
-      name: "MaterialDetail",
-      component: () => import("@/views/Home.vue"),
+      name: "ShowMaterial",
+      component: () => import("@/views/materials/show.vue"),
     },
 
     // Categorías de materiales
