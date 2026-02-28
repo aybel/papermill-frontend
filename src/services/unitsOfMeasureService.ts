@@ -22,8 +22,6 @@ export interface UnitsOfMeasure {
 export const unitsOfMeasureService = {
   async getAll() {
     const response = await api.get(`${API_URL}/${route}`);
-
-    console.log("unitsOfMeasureService getAll response:", response);
     return response.data.data;
   },
 

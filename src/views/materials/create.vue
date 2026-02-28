@@ -25,6 +25,11 @@
 						<v-select v-model="form.unit_of_measure_id as any" :items="unitsOfMeasure" item-title="name"
 							item-value="id" label="Unidad de medida" :rules="[rules.required]" required />
 					</v-col>
+					
+					<v-col cols="12" md="4">
+						<v-select v-model="form.currency_id as any" :items="currencies" item-title="name"
+							item-value="id" label="Moneda" :rules="[rules.required]" required />
+					</v-col>
 
 					<v-col cols="12" md="3">
 						<v-text-field v-model.number="form.current_stock" label="Stock actual" type="number"
@@ -55,10 +60,6 @@
 						<v-text-field v-model.number="form.last_purchase_price" label="Último precio de compra"
 							type="number" :rules="[rules.numeric, rules.nonNegative]" />
 					</v-col>
-					<v-col cols="12" md="3">
-						<v-text-field v-model.number="form.currency_id" label="Moneda (ID)" type="number" />
-					</v-col>
-
 					<v-col cols="12" md="4">
 						<v-text-field v-model.number="form.grammage" label="Gramaje" type="number"
 							:rules="[rules.numeric, rules.nonNegative]" />
@@ -97,7 +98,8 @@ import { showSwal } from '@/utils/alerts';
 import { materialTypeService } from '@/services/materialTypeService';
 import { materialCategoryService } from '@/services/materialCategories';
 import { unitsOfMeasureService } from '@/services/unitsOfMeasureService';
-import { c } from 'vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf';
+import { catalogsService } from '@/services/catalogsService';
+
 
 const router = useRouter();
 const loading = ref(false);
@@ -106,6 +108,7 @@ const formRef = ref();
 const categories = ref([]);
 const materialTypes = ref([]);
 const unitsOfMeasure = ref([]);
+const currencies = ref([]);
 const errors = ref<Record<string, string[]>>({});
 
 const form = reactive<Partial<Material>>({
@@ -128,15 +131,17 @@ const form = reactive<Partial<Material>>({
 	color: '',
 });
 const fetchSelects = async () => {
-	const [categories, materialTypes, unitsOfMeasure] = await Promise.all([
+	const [categoriesAll, materialTypesAll, unitsOfMeasureAll, currenciesAll] = await Promise.all([
 		materialCategoryService.getAll(),
 		materialTypeService.getAll(),
 		unitsOfMeasureService.getAll(),
+		catalogsService.getCurrencies(),
 	]);
-	
-	categories.value = categories;
-	materialTypes.value = materialTypes;
-	unitsOfMeasure.value = unitsOfMeasure;
+
+	categories.value = categoriesAll;
+	materialTypes.value = materialTypesAll;
+	unitsOfMeasure.value = unitsOfMeasureAll;
+	currencies.value = currenciesAll;
 };
 const rules = {
 	required: (v: any) => !!v || 'Campo requerido',
