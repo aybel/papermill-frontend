@@ -19,7 +19,7 @@ const props = defineProps({ item: Object, level: Number });
         <template v-slot:prepend>
             <Icon :item="item.icon" :level="level" />
         </template>
-        <v-list-item-title
+        <v-list-item-title class="wrap-text"
             >{{ item.title }}
             <span v-if="item.children">
                 <span v-if="item.chip" class="ps-3">
@@ -54,3 +54,13 @@ const props = defineProps({ item: Object, level: Number });
         </template>
     </v-list-item>
 </template>
+
+<style scoped>
+.wrap-text {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  display: block !important;
+  line-height: 1.2;
+}
+</style>

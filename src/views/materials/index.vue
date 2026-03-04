@@ -21,6 +21,9 @@
                 </v-col>
                 <v-col cols="12" md="4" class="d-flex justify-end">
                     <v-menu offset-y>
+                        <template >
+
+                        </template>
                         <template #activator="{ props }">
                             <v-btn color="secondary" v-bind="props">
                                 Exportar
@@ -41,7 +44,7 @@
             <v-data-table :headers="headers" :items="materials" :search="search" :loading="loading" :items-per-page="10"
                 class="elevation-1" loading-text="Cargando materiales..."
                 no-data-text="No hay materiales registrados">
-                <template v-slot:item.actions="{ item }">
+                <template v-slot:[`item.actions`]="{ item }">
                     <v-btn icon size="small" variant="text" color="primary" @click="handleEdit(item)">
                         <PencilIcon />
                     </v-btn>
@@ -49,6 +52,24 @@
                         <v-icon>mdi-eye-outline</v-icon>
                     </v-btn>
                 </template>
+                <template v-slot:[`item.current_stock`]="{ item }">
+                    {{ Math.round(item.current_stock) }}
+                </template>
+                <template v-slot:[`item.min_stock`]="{ item }">
+                    {{ Math.round(item.min_stock) }}
+                </template>
+                <template v-slot:[`item.max_stock`]="{ item }">
+                    {{ Math.round(item.max_stock) }}
+                </template>
+                <template v-slot:[`item.reorder_point`]="{ item }">
+                    {{ Math.round(item.reorder_point) }}
+                </template>
+                <template v-slot:[`item.avg_unit_cost`]="{ item }">
+                    {{ item.currency.symbol }} {{ Number(item.avg_unit_cost).toFixed(2) }}
+                </template>
+                <template v-slot:[`item.last_purchase_price`]="{ item }">
+                    {{ item.currency.symbol }}   {{ Number(item.last_purchase_price).toFixed(2) }}
+                </template> 
             </v-data-table>
         </v-card-text>
     </v-card>
@@ -66,7 +87,6 @@
 import { ref, onMounted } from 'vue';
 import Swal from 'sweetalert2';
 import { materialService, type Material } from '@/services/materialService';
-import { PencilIcon, TrashIcon, PlusIcon } from 'vue-tabler-icons';
 import { useRouter } from 'vue-router';
 
 
@@ -90,7 +110,6 @@ const headers: { title: string; key: string; align?: 'start' | 'end' | 'center';
     { title: 'Punto de reorden', key: 'reorder_point', align: 'end' },
     { title: 'Costo prom. unitario', key: 'avg_unit_cost', align: 'end' },
     { title: 'Último precio de compra', key: 'last_purchase_price', align: 'end' },
-    { title: 'Moneda', key: 'currency.name', align: 'center' },
     { title: 'Acciones', key: 'actions', sortable: false, align: 'center' }
 ];
 

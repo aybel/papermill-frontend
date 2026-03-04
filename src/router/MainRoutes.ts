@@ -6,14 +6,20 @@ const MainRoutes = {
     requiresAuth: true,
   },
   //redirect: "/home",
+
   component: () => import("@/layouts/full/FullLayout.vue"),
   children: [
+    {
+      path: "/WorkInProgress",
+      name: "WorkInProgress",
+      component: () => import("@/views/pages/WorkInProgress.vue"),
+    },
     {
       path: "home",
       name: "Home",
       component: () => import("@/views/Home.vue"),
     },
-    
+
     // ==================== PROVEEDORES ====================
     {
       path: "suppliers",
@@ -40,21 +46,46 @@ const MainRoutes = {
       name: "ShowSupplier",
       component: () => import("@/views/suppliers/show.vue"),
     },
-    
+
     // Contactos de proveedores
     {
       path: "supplier-contacts",
       name: "SupplierContacts",
       component: () => import("@/views/Home.vue"),
     },
-    
+
     // Desempeño de proveedores
     {
       path: "supplier-performance",
       name: "SupplierPerformance",
       component: () => import("@/views/Home.vue"),
     },
-
+    // ==================== PRESUPUESTO ====================
+    {
+      path: "budget-categories", //Rubros presupuestales
+      name: "BudgetCategories",
+      component: () => import("@/views/budgets/categories/index.vue"),
+    },
+    {
+      path: "budget-assignments", //Asignación presupuestaria
+      name: "BudgetAssignments",
+      component: () => import("@/views/budgets/assignments/index.vue"),
+    },
+    {
+      path: "budget-scheduling", //Calendarización presupuestaria
+      name: "BudgetScheduling",
+      component: () => import("@/views/budgets/scheduling/index.vue"),
+    },
+    {
+      path: "budget-authorization", //Autorización presupuestaria
+      name: "BudgetAuthorization",
+      component: () => import("@/views/budgets/authorization/index.vue"),
+    },
+    {
+      path: "my-budget", //Mi presupuesto
+      name: "MyBudget",
+      component: () => import("@/views/budgets/my-budget/index.vue"),
+    },
     // ==================== MATERIALES ====================
     {
       path: "materials",
