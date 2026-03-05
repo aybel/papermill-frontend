@@ -75,13 +75,13 @@ const sidebarItem: menu[] = [
   {
     title: "Asignación presupuestaria",
     icon: BuildingStoreIcon,
-    to: "/WorkInProgress",
+    to: "/budget-assignments",
     external: false,
   },
   {
     title: "Calendarización presupuestaria",
     icon: CalendarIcon,
-    to: "/WorkInProgress",
+    to: "/budget-scheduling",
     external: false,
   },
   {
@@ -206,9 +206,9 @@ const sidebarItem: menu[] = [
     external: false,
     children: [
       {
-        title: "Autorizar Usuarios",
+        title: "Lista de Usuarios",
         icon: UsersIcon,
-        to: "/WorkInProgress",
+        to: "/users",
         external: false,
       },
       {

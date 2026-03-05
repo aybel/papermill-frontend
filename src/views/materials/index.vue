@@ -118,7 +118,6 @@ const loadMaterials = async () => {
     try {
         const response = await materialService.getAll();
         materials.value = response.data || response;
-        console.log(materials.value);
     } catch (error: any) {
         let message = 'Error al cargar materiales';
         alert(message);

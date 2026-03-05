@@ -231,6 +231,13 @@ const MainRoutes = {
       name: "InventoryReports",
       component: () => import("@/views/Home.vue"),
     },
+
+    // ==================== USUARIOS ====================
+      {
+        path: "users",
+        name: "Users",
+        component: () => import("@/views/users/index.vue"),
+      }
   ],
 };
 

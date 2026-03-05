@@ -26,3 +26,12 @@ html {
 .lh-normal{
     line-height: normal;
 }
+
+// SweetAlert: ensure dialogs appear above Vuetify modals
+.swal-front-container {
+    z-index: 3000 !important;
+}
+
+.swal-front {
+    z-index: 3001 !important;
+}
