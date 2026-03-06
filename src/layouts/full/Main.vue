@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef, watch } from "vue";
 import { useDisplay } from "vuetify";
-import sidebarItems from "./vertical-sidebar/sidebarItem";
+
 import NavGroup from "./vertical-sidebar/NavGroup/index.vue";
 import NavItem from "./vertical-sidebar/NavItem/index.vue";
 import Logo from "./logo/Logo.vue";
@@ -11,10 +11,13 @@ import { Menu2Icon } from "vue-tabler-icons";
 import NotificationDD from "./vertical-header/NotificationDD.vue";
 import ProfileDD from "./vertical-header/ProfileDD.vue";
 import NavCollapse from "./vertical-sidebar/NavCollapse/NavCollapse.vue";
-const sidebarMenu = shallowRef(sidebarItems);
+import { useSidebarStore } from "@/stores/sidebarStore";
 
 const { mdAndDown } = useDisplay();
 const sDrawer = ref(true);
+
+// Crea una instancia del store
+const sidebarStore = useSidebarStore();
 onMounted(() => {
   sDrawer.value = !mdAndDown.value; // hide on mobile, show on desktop
 });
@@ -44,7 +47,7 @@ watch(mdAndDown, (val) => {
         <perfect-scrollbar class="scrollnavbar">
           <v-list class="pa-6">
             <!---Menu Loop -->
-            <template v-for="(item, i) in sidebarMenu">
+            <template v-for="(item, i) in sidebarStore.filteredMenu" :key="i">
               <!---Item Sub Header -->
               <NavGroup :item="item" v-if="item.header" :key="item.title" />
 

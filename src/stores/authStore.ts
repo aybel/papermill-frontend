@@ -17,7 +17,6 @@ interface AuthState {
   returnUrl: string | null;
 }
 
-
 export const useAuthStore = defineStore("auth", {
   state: (): AuthState => ({
     // Intentamos obtener el estado inicial desde localStorage para persistir la sesión
@@ -35,27 +34,31 @@ export const useAuthStore = defineStore("auth", {
   actions: {
     async login(email: string, password: string) {
       try {
-        console.log('Llamando a apiClient.post(auth/login)');
+        console.log("Llamando a apiClient.post(auth/login)");
         const response = await apiClient.post("auth/login", {
           email,
           password,
         });
-        console.log('Respuesta login:', response);
+        console.log("Respuesta login:", response);
+
+        if (response.status !== 200) {
+          throw new Error("Login failed");
+        }
         const { access_token } = response.data;
 
         // Guardar el token en el estado y en localStorage
         this.token = access_token;
         localStorage.setItem("token", access_token);
-        console.log('Token guardado:', access_token);
+        console.log("Token guardado:", access_token);
 
         // Después de obtener el token, obtenemos los datos del usuario
-        //const userResult = await this.fetchUser();
-        //console.log('Resultado fetchUser:', userResult);
+        await this.fetchUser();
+        console.log('Usuario y permisos cargados');
 
         // Redirigir al usuario a la página que intentaba visitar o al dashboard
         return true;
       } catch (error) {
-        console.error("Error en el login:", error);
+        console.log("Error en el login:", error);
         // Aquí podrías manejar el error, por ejemplo, mostrando una notificación
         throw error;
       }
@@ -76,10 +79,29 @@ export const useAuthStore = defineStore("auth", {
           localStorage.setItem("roles", JSON.stringify(roles));
           localStorage.setItem("permissions", JSON.stringify(permissions));
         } catch (error) {
-          console.error("Error fetching user:", error);
+          console.log("Error fetching user:", error);
           // Si hay un error (ej. token inválido), limpiamos la sesión
           this.logout();
         }
+      }
+    },
+
+    async resetPassword(
+      token: string,
+      email: string,
+      password: string,
+      password_confirmation: string,
+    ) {
+      try {
+        await apiClient.post("auth/set-password", {
+          token,
+          email,
+          password,
+          password_confirmation,
+        });
+      } catch (error) {
+        console.log("Error en el restablecimiento de contraseña:", error);
+        throw error;
       }
     },
 
@@ -97,7 +119,7 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("permissions");
 
       // Redirigir a la página de login
-      window.location.href = '/';
+      window.location.href = "/";
     },
   },
 });

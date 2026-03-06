@@ -22,13 +22,12 @@ export interface Permission {
 export const RoleService = {
   async getAll(): Promise<Role[]> {
     const { data } = await api.get<Role[]>(`${API_URL}/${route}`);
-    return data;
+    return data.data;
   },
   async getPermissions(roleId: number): Promise<Permission[]> {
     const { data } = await api.get<Role<Permission[]>>(
       `${API_URL}/${route}/${roleId}`,
     );
-    console.log(data);
     return data.data.permissions;
   },
 };

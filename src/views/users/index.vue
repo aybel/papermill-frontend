@@ -55,15 +55,15 @@
                     <v-text-field v-model="form.email" label="Correo electrónico" required />
                 </v-col>
                 <v-col cols="12" md="12">
-                    <v-select v-model="form.department_id" :items="departmentOptions" item-title="name" item-value="id"
+                    <v-select v-if="Array.isArray(departmentOptions)" v-model="form.department_id" :items="departmentOptions" item-title="name" item-value="id"
                         label="Departamento al que pertenece" required :loading="lookupsLoading" />
                 </v-col>
                 <v-col cols="12" md="12">
-                    <v-select v-model="form.roles" :items="roleOptions" item-title="name" item-value="name"
+                    <v-select v-if="Array.isArray(roleOptions)" v-model="form.roles" :items="roleOptions" item-title="name" item-value="name"
                         label="Roles" multiple required :loading="lookupsLoading" />
                 </v-col>
                 <v-col cols="12" md="12">
-                    <v-select v-model="form.accessible_departments" :items="departmentOptions" item-title="name"
+                    <v-select v-if="Array.isArray(departmentOptions)" v-model="form.accessible_departments" :items="departmentOptions" item-title="name"
                         item-value="id" label="Departamentos asignados" multiple required :loading="lookupsLoading" />
                 </v-col>
             </v-row>
@@ -94,7 +94,7 @@
                                     </v-icon>
                                 </template>
                                 <v-list-item-title class="font-weight-medium">{{ permission.description
-                                }}</v-list-item-title>
+                                    }}</v-list-item-title>
                                 <v-list-item-subtitle>{{ permission.name }}</v-list-item-subtitle>
                             </v-list-item>
                         </v-list>
@@ -332,7 +332,7 @@ async function submitForm() {
         const result = isCreate
             ? await userService.create(payload)
             : await userService.update(form.id!, payload);
-
+        console.log(result);
         if (result.success) {
             showSwal({
                 icon: 'success',
