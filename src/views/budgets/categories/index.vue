@@ -70,7 +70,7 @@ import UiParentCard from "@/components/shared/UiParentCard.vue";
 import {
   BudgetCategoryService,
   type BudgetCategory,
-} from "@/services/budgets/budgetCategoriesService";
+} from "@/services/budgets/categoriesService";
 import { showSwal, confirmSwal } from "@/utils/alerts";
 import type { VForm } from "vuetify/components";
 

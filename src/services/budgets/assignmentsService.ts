@@ -3,7 +3,7 @@ import api from '@/plugins/axios';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
-const route="budget-schedulings";
+const route="budget-assignments";
 
 export interface Assignment {
     id: number | null;

@@ -1,6 +1,6 @@
 <template>
   <DetailPage title="Calendarización Presupuestaria"
-    subtitle="Gestiona las solicitudes de presupuesto, asignaciones y cronogramas relacionados.">
+    subtitle="Gestiona las solicitudes de  calendarización presupuestaria.">
   </DetailPage>
   <UiParentCard>
     <DataTable :headers="headers" :items="budgetRequest" :loading="loading" v-model:search="search"
@@ -41,8 +41,8 @@ import UiParentCard from "@/components/shared/UiParentCard.vue";
 import {
   BudgetRequestService,
   type BudgetRequest,
-} from "@/services/budgets/budgetRequestsService";
-import { BudgetCategoryService, type BudgetCategory } from "@/services/budgets/budgetCategoriesService";
+} from "@/services/budgets/requestsService";
+import { BudgetCategoryService, type BudgetCategory } from "@/services/budgets/categoriesService";
 import { showSwal, confirmSwal } from "@/utils/alerts";
 import type { VForm } from "vuetify/components";
 

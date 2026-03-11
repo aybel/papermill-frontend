@@ -17,13 +17,28 @@ interface AuthState {
   returnUrl: string | null;
 }
 
+function parseStorageItem<T>(key: string, fallback: T): T {
+  const rawValue = localStorage.getItem(key);
+
+  if (rawValue === null) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(rawValue) as T;
+  } catch {
+    localStorage.removeItem(key);
+    return fallback;
+  }
+}
+
 export const useAuthStore = defineStore("auth", {
   state: (): AuthState => ({
     // Intentamos obtener el estado inicial desde localStorage para persistir la sesión
-    user: JSON.parse(localStorage.getItem("user") || "null"),
+    user: parseStorageItem<User | null>("user", null),
     token: localStorage.getItem("token") || null,
-    roles: JSON.parse(localStorage.getItem("roles") || "[]"),
-    permissions: JSON.parse(localStorage.getItem("permissions") || "[]"),
+    roles: parseStorageItem<string[]>("roles", []),
+    permissions: parseStorageItem<string[]>("permissions", []),
     returnUrl: null,
   }),
   getters: {
@@ -53,7 +68,7 @@ export const useAuthStore = defineStore("auth", {
 
         // Después de obtener el token, obtenemos los datos del usuario
         await this.fetchUser();
-        console.log('Usuario y permisos cargados');
+        console.log("Usuario y permisos cargados");
 
         // Redirigir al usuario a la página que intentaba visitar o al dashboard
         return true;

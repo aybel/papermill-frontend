@@ -103,8 +103,8 @@ import UiParentCard from "@/components/shared/UiParentCard.vue";
 import {
     AssignmentService,
     type Assignment,
-} from "@/services/budgets/schedulingsService";
-import { BudgetCategoryService, type BudgetCategory } from "@/services/budgets/budgetCategoriesService";
+} from "@/services/budgets/assignmentsService";
+import { BudgetCategoryService, type BudgetCategory } from "@/services/budgets/categoriesService";
 import { DepartmentService, type Department } from "@/services/departmentsService";
 import { showSwal, confirmSwal } from "@/utils/alerts";
 import { normalizeAmount, formatAmount, handleAmountKeyPress } from "@/utils/numberFormat";
