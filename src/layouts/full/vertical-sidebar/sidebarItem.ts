@@ -92,7 +92,7 @@ const sidebarItem: menu[] = [
   {
     title: "Calendarización presupuestaria",
     icon: CalendarIcon,
-    to: "/budget-scheduling",
+    to: "/budget-requests",
     external: false,
     permission: PERMISSIONS.VIEW_BUDGET_REQUESTS,
   },

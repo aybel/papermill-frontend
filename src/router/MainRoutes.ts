@@ -1,5 +1,3 @@
-import path from "path";
-
 const MainRoutes = {
   path: "/",
   meta: {
@@ -72,9 +70,24 @@ const MainRoutes = {
       component: () => import("@/views/budgets/assignments/index.vue"),
     },
     {
-      path: "budget-scheduling", //Calendarización presupuestaria
-      name: "BudgetScheduling",
-      component: () => import("@/views/budgets/scheduling/index.vue"),
+      path: "budget-requests", //Solicitud presupuestaria
+      name: "BudgetRequests",
+      component: () => import("@/views/budgets/requests/index.vue"),
+    },
+    {
+      path: "budget-requests/create", //Nueva solicitud de calendarización presupuestaria
+      name: "BudgetRequestsCreate",
+      component: () => import("@/views/budgets/requests/create.vue"),
+    },
+    {
+      path: "budget-requests/edit/:id", //Editar solicitud de calendarización presupuestaria
+      name: "BudgetRequestsEdit",
+      component: () => import("@/views/budgets/requests/edit.vue"),
+    },
+    {
+      path: "budget-requests/view/:id", //Ver solicitud de calendarización presupuestaria
+      name: "BudgetRequestsView",
+      component: () => import("@/views/budgets/requests/show.vue"),
     },
     {
       path: "budget-authorization", //Autorización presupuestaria
@@ -233,11 +246,11 @@ const MainRoutes = {
     },
 
     // ==================== USUARIOS ====================
-      {
-        path: "users",
-        name: "Users",
-        component: () => import("@/views/users/index.vue"),
-      }
+    {
+      path: "users",
+      name: "Users",
+      component: () => import("@/views/users/index.vue"),
+    },
   ],
 };
 

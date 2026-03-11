@@ -21,6 +21,9 @@
         </div>
       </template>
       <template #item.actions="{ item }">
+        <v-btn icon variant="text" color="info" @click.stop="openView(item)">
+          <v-icon>mdi-eye</v-icon>
+        </v-btn>
         <v-btn icon variant="text" color="primary" @click.stop="startEdit(item)">
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
@@ -34,56 +37,23 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { onMounted, reactive, ref } from "vue";
+import { reactive, ref } from "vue";
 import DataTable, { BaseTableHeader } from "@/components/base/DataTable.vue";
 import DetailPage from "@/components/base/DetailPage.vue";
 import UiParentCard from "@/components/shared/UiParentCard.vue";
 import {
-  BudgetRequestService,
   type BudgetRequest,
 } from "@/services/budgets/requestsService";
-import { BudgetCategoryService, type BudgetCategory } from "@/services/budgets/categoriesService";
-import { showSwal, confirmSwal } from "@/utils/alerts";
-import type { VForm } from "vuetify/components";
-
-type EditableBudgetRequest = {
-  id: number | null;
-  request_number: string | null;
-  year: number | null;
-  budget_category_id: number | null;
-  submitted_at: string | null;
-  notes: string;
-  is_active?: boolean;
-};
-
-const form = reactive<EditableBudgetRequest>(emptyForm());
 
 const router = useRouter();
 const budgetRequest = ref<BudgetRequest[]>([]);
 const loading = ref(false);
-const saving = ref(false);
 const deletingId = ref<number | null>(null);
-const inlineSavingId = ref<number | null>(null);
-const lookupsLoading = ref(false);
-const dialog = ref(false);
-const dialogMode = ref<"create" | "edit">("create");
 const search = ref("");
-const formRef = ref<VForm | null>(null);
 const pagination = reactive({
   page: 1,
   itemsPerPage: 50,
 });
-
-const categoryOptions = ref<BudgetCategory[]>([]);
-const yearOptions = ref<number[]>([]);
-
-const rules = {
-  required: (value: unknown) => {
-    if (value === null || value === undefined) return "Campo requerido";
-    if (typeof value === "string") return value.trim().length > 0 || "Campo requerido";
-    return true;
-  },
-};
 
 const headers: BaseTableHeader[] = [
   { title: "Numero de solicitud", key: "request_number" },
@@ -103,48 +73,30 @@ const headers: BaseTableHeader[] = [
   { title: "Acciones", key: "actions", sortable: false, align: "end", },
 ];
 
-
-function emptyForm(): EditableBudgetRequest {
-  return {
-    id: null,
-    request_number: null,
-    year: new Date().getFullYear(),
-    budget_category_id: null,
-    submitted_at: new Date().toISOString().split("T")[0],
-    notes: "",
-    is_active: true,
-  };
-}
-async function submitForm() {
-
+function openCreate() {
+  router.push({ name: "BudgetRequestsCreate" });
 }
 
-function buildYearOptions() {
-  const current = new Date().getFullYear();
-  yearOptions.value = Array.from({ length: 7 }, (_, idx) => current - 3 + idx);
+function startEdit(item: BudgetRequest) {
+  if (item.id === null) return;
+  router.push({ name: "BudgetRequestsEdit", params: { id: item.id } });
 }
 
-async function fetchLookups() {
-  lookupsLoading.value = true;
-  try {
-    const categories = await BudgetCategoryService.getAll();
-    categoryOptions.value = categories;
-  } catch (error) {
-    console.error("Error al cargar catálogos", error);
-    showSwal({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudieron cargar los catálogos.',
-      confirmButtonText: 'Aceptar',
-    });
-  } finally {
-    lookupsLoading.value = false;
-  }
+function openView(item: BudgetRequest) {
+  if (item.id === null) return;
+  router.push({ name: "BudgetRequestsView", params: { id: item.id } });
 }
 
-onMounted(() => {
-  buildYearOptions();
-  fetchLookups();
-});
+function remove(item: BudgetRequest) {
+  if (item.id === null) return;
+  // Aquí iría la lógica para eliminar la solicitud de calendarización presupuestaria
+  // Por ejemplo, podrías mostrar un diálogo de confirmación y luego llamar a un servicio para eliminarla
+  console.log("Eliminar solicitud con ID:", item.id);
+}
+
+function exportCsv() {
+  // Aquí iría la lógica para exportar las solicitudes de calendarización presupuestaria a CSV
+  console.log("Exportar a CSV");
+}
 
 </script>
