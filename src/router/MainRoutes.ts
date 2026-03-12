@@ -251,6 +251,27 @@ const MainRoutes = {
       name: "Users",
       component: () => import("@/views/users/index.vue"),
     },
+    // ==================== ROLES ====================
+    {
+      path: "roles",
+      name: "Roles",
+      component: () => import("@/views/roles/index.vue"),
+    },
+    {
+      path: "roles/create",
+      name: "RolesCreate",
+      component: () => import("@/views/roles/create.vue"),
+    },
+    {
+      path: "roles/edit/:id",
+      name: "RolesEdit",
+      component: () => import("@/views/roles/edit.vue"),
+    },
+     {
+      path: "roles/show/:id",
+      name: "RolesShow",
+      component: () => import("@/views/roles/show.vue"),
+    },
   ],
 };
 

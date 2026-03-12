@@ -5,29 +5,41 @@ const route = "roles";
 export interface Role {
   id: number;
   name: string;
-  created_at?: string | null;
-  updated_at?: string | null;
-}
-export interface Permission {
-  id: number;
-  name: string;
-  full_name: string;
-  resource: string;
-  action: string;
-  category: string;
-  description: string;
-  icon?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export const RoleService = {
+export const roleService = {
   async getAll(): Promise<Role[]> {
-    const { data } = await api.get<Role[]>(`${API_URL}/${route}`);
-    return data.data;
+    const response = await api.get(`${API_URL}/${route}`);
+    return response.data.data;
   },
-  async getPermissions(roleId: number): Promise<Permission[]> {
-    const { data } = await api.get<Role<Permission[]>>(
-      `${API_URL}/${route}/${roleId}`,
-    );
-    return data.data.permissions;
+
+  async search(params: Record<string, any> = {}) {
+    // Puedes pasar cualquier combinación de filtros en params, por ejemplo:
+    // { supplier_id: 5, name: 'Juan', email: 'juan@mail.com' }
+    const queryString = new URLSearchParams(params).toString();
+    console.log("Query string for search:", queryString);
+    const response = await api.get(`${API_URL}/${route}/search?${queryString}`);
+    return response.data.data;
+  },
+
+  async getById(id: number): Promise<Role> {
+    const response = await api.get(`${API_URL}/${route}/${id}`);
+    return response.data;
+  },
+
+  async create(data: Role): Promise<Role> {
+    const response = await api.post(`${API_URL}/${route}`, data);
+    return response.data;
+  },
+
+  async update(id: number, data: Role): Promise<Role> {
+    const response = await api.put(`${API_URL}/${route}/${id}`, data);
+    return response.data;
+  },
+
+  async delete(id: number): Promise<void> {
+    await api.delete(`${API_URL}/${route}/${id}`);
   },
 };

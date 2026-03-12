@@ -92,11 +92,11 @@ export const PERMISSIONS = {
   DELETE_USERS: "users.manage",
 
   //Roles
-  VIEW_ROLES: "roles.view_any",
-  SHOW_ROLES: "roles.view",
-  CREATE_ROLES: "roles.create",
-  EDIT_ROLES: "roles.edit",
-  DELETE_ROLES: "roles.delete",
+  VIEW_ROLES: "roles.manage",
+  SHOW_ROLES: "roles.manage",
+  CREATE_ROLES: "roles.manage",
+  EDIT_ROLES: "roles.manage",
+  DELETE_ROLES: "roles.manage",
 
   //Desempeño de proveedores
   VIEW_SUPPLIER_PERFORMANCE: "supplier_performance.view_any",
