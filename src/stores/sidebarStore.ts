@@ -1,86 +1,52 @@
-import { defineStore } from "pinia";
-import { ref, computed } from "vue";
-import sidebarItem, {
-  type menu,
-} from "@/layouts/full/vertical-sidebar/sidebarItem";
-import { useAuthStore } from "./authStore";
+// stores/sidebarStore.ts
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
+import { menuService } from '@/services/menuService';
+import { useMenuAdapter } from '@/composables/useMenuAdapter';
+import type { SemanticMenuItem } from '@/config/menu';
 
-export const useSidebarStore = defineStore("sidebar", () => {
-  // Estado: el menú completo sin filtrar
-  const menuItems = ref<menu[]>(sidebarItem);
+export const useSidebarStore = defineStore('sidebar', () => {
+    const semanticMenu = ref<SemanticMenuItem[]>([]);
+    const loading = ref(false);
+    const error = ref<string | null>(null);
+    const { adaptMenu } = useMenuAdapter();
 
-  // Getter: devuelve el menú filtrado según los permisos del usuario
-  const filteredMenu = computed(() => {
-    const authStore = useAuthStore();
-    
-    console.log('=== INICIO FILTRADO DE MENÚ ===');
-    console.log('Estado completo authStore:', {
-      isAuthenticated: authStore.isAuthenticated,
-      token: authStore.token ? 'presente' : 'ausente',
-      user: authStore.user,
-      roles: authStore.roles,
-      permissions: authStore.permissions,
+    const filteredMenu = computed(() => {
+        if (!semanticMenu.value.length) return [];
+        return adaptMenu(semanticMenu.value);
     });
-    console.log('LocalStorage permissions:', localStorage.getItem('permissions'));
-    console.log('LocalStorage roles:', localStorage.getItem('roles'));
-    console.log('Permisos del usuario:', authStore.permissions);
-    console.log('Usuario autenticado:', authStore.isAuthenticated);
 
-    // Función recursiva para filtrar los elementos del menú y sus hijos
-    const filter = (items: menu[], level = 0): menu[] => {
-      const indent = '  '.repeat(level);
-      console.log(`${indent}Filtrando ${items.length} items en nivel ${level}`);
-      
-      return items
-        .map((item) => ({ ...item })) // Crear una copia del objeto para evitar mutaciones
-        .filter((item) => {
-          console.log(`${indent}📋 Procesando: "${item.title || item.header}"`);
-          console.log(`${indent}   - Permiso requerido: ${item.permission || 'ninguno (público)'}`);
-          
-          // Si el elemento tiene hijos, filtramos también a los hijos (creando copias)
-          if (item.children) {
-            console.log(`${indent}   - Tiene hijos, filtrando recursivamente...`);
-            item.children = filter(item.children, level + 1);
-            console.log(`${indent}   - Hijos después de filtrar: ${item.children.length}`);
-          }
+    async function loadMenu(force = false) {
+        if (!force && semanticMenu.value.length) return;
+        
+        loading.value = true;
+        error.value = null;
+        
+        try {
+            const response = await menuService.getUserMenu();
+            semanticMenu.value = response.menu;
+            
+            console.log('✅ Menú semántico cargado:', semanticMenu.value.length, 'items');
+        } catch (err) {
+            error.value = 'Error al cargar el menú';
+            console.error(err);
+        } finally {
+            loading.value = false;
+        }
+    }
 
-          // Un elemento es visible si:
-          const noRequierePermiso = !item.permission;
-          const tienePermiso = item.permission ? authStore.hasPermission(item.permission) : false;
-          const esHeader = !!item.header;
-          const tieneHijosVisibles = item.children && item.children.length > 0;
-          
-          console.log(`${indent}   - No requiere permiso: ${noRequierePermiso}`);
-          console.log(`${indent}   - Tiene permiso: ${tienePermiso}`);
-          console.log(`${indent}   - Es header: ${esHeader}`);
-          console.log(`${indent}   - Tiene hijos visibles: ${tieneHijosVisibles}`);
-          
-          const esVisible = noRequierePermiso || tienePermiso || esHeader || tieneHijosVisibles;
-          console.log(`${indent}   ✅ Visible: ${esVisible}`);
-          
-          return esVisible;
-        })
-        .filter((item, index, arr) => {
-          // Elimina encabezados que no tienen elementos visibles después de ellos
-          if (item.header) {
-            const nextItem = arr[index + 1];
-            const mantenerHeader = nextItem && !nextItem.header;
-            console.log(`${indent}🏷️  Header "${item.header}" - Mantener: ${mantenerHeader}`);
-            return mantenerHeader;
-          }
-          return true;
-        });
+    // Limpiar menú (útil para logout)
+    function clearMenu() {
+        semanticMenu.value = [];
+        menuService.clearCache();
+    }
+
+    return {
+        filteredMenu,
+        semanticMenu,
+        loading,
+        error,
+        loadMenu,
+        clearMenu
     };
-
-    const resultado = filter([...menuItems.value]);
-    console.log('=== FIN FILTRADO DE MENÚ ===');
-    console.log('Items finales visibles:', resultado.length);
-    console.log('Items:', resultado.map(i => i.title || i.header));
-    
-    return resultado;
-  });
-
-  return {
-    filteredMenu,
-  };
 });
