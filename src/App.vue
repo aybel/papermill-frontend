@@ -12,6 +12,7 @@ const authStore = useAuthStore();
 const sidebarStore = useSidebarStore();
 onMounted(async () => {
     if (authStore.isAuthenticated) {
+        //Carga el menú del sidebar solo si el usuario está autenticado
         await sidebarStore.loadMenu();
     }
 });

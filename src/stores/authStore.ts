@@ -74,8 +74,8 @@ export const useAuthStore = defineStore("auth", {
         // Redirigir al usuario a la página que intentaba visitar o al dashboard
 
         // llamamos a la función de carga del menú para que se actualice con los permisos del usuario
-        const sidebarStore = useSidebarStore();
-        await sidebarStore.loadMenu(true);
+        //const sidebarStore = useSidebarStore();
+        //await sidebarStore.loadMenu(true);
         return true;
       } catch (error) {
         console.log("Error en el login:", error);

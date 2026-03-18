@@ -4,6 +4,7 @@ import { ref, computed } from 'vue';
 import { menuService } from '@/services/menuService';
 import { useMenuAdapter } from '@/composables/useMenuAdapter';
 import type { SemanticMenuItem } from '@/config/menu';
+import { showSwal } from '@/utils/alerts';
 
 export const useSidebarStore = defineStore('sidebar', () => {
     const semanticMenu = ref<SemanticMenuItem[]>([]);
@@ -25,6 +26,15 @@ export const useSidebarStore = defineStore('sidebar', () => {
         try {
             const response = await menuService.getUserMenu();
             semanticMenu.value = response.menu;
+
+            if (!semanticMenu.value.length) {
+                error.value = 'No tiene permisos asignados al rol';
+                await showSwal({
+                    icon: 'warning',
+                    title: 'Sin permisos',
+                    text: 'No tiene permisos asignados al rol.'
+                });
+            }
             
             console.log('✅ Menú semántico cargado:', semanticMenu.value.length, 'items');
         } catch (err) {
