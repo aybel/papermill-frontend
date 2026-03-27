@@ -3,8 +3,8 @@
     subtitle="Gestiona las solicitudes de  calendarización presupuestaria.">
   </DetailPage>
   <UiParentCard>
-    <DataTable :headers="headers" :items="budgetRequest" :loading="loading" v-model:search="search"
-      :page="pagination.page" :items-per-page="pagination.itemsPerPage" :total-items="budgetRequest.length"
+    <DataTable :headers="headers" :items="budgets" :loading="loading" v-model:search="search"
+      :page="pagination.page" :items-per-page="pagination.itemsPerPage" :total-items="budgets.length"
       @update:page="pagination.page = $event" @update:itemsPerPage="pagination.itemsPerPage = $event">
       <template #top>
         <div class="d-flex flex-wrap align-center justify-space-between px-4 py-3 ga-3">
@@ -37,16 +37,18 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { reactive, ref } from "vue";
+import { reactive, ref, onMounted, computed } from "vue";
 import DataTable, { BaseTableHeader } from "@/components/base/DataTable.vue";
 import DetailPage from "@/components/base/DetailPage.vue";
 import UiParentCard from "@/components/shared/UiParentCard.vue";
 import {
+  BudgetRequestService,
   type BudgetRequest,
 } from "@/services/budgets/requestsService";
+import { showSwal, confirmSwal } from "@/utils/alerts";
 
 const router = useRouter();
-const budgetRequest = ref<BudgetRequest[]>([]);
+const budgets = ref<BudgetRequest[]>([]);
 const loading = ref(false);
 const deletingId = ref<number | null>(null);
 const search = ref("");
@@ -59,19 +61,31 @@ const headers: BaseTableHeader[] = [
   { title: "Numero de solicitud", key: "request_number" },
   { title: "Año", key: "year" },
   { title: "Fecha de registro", key: "submitted_at" },
-  {
-    title: "Rubro", key: "category", sortable: false
-  },
-  {
-    title: "Departamento", key: "department", sortable: false
-  },
-  {
-    title: "Total solicitado", key: "total_requested", sortable: false
-  },
+  { title: "Rubro", key: "category", sortable: false },
+  { title: "Departamento", key: "department", sortable: false },
+  { title: "Total solicitado", key: "total_requested", sortable: false },
   { title: "Notas", key: "notes", sortable: false },
   { title: "Estado", key: "budget_request_status_id", sortable: false, },
   { title: "Acciones", key: "actions", sortable: false, align: "end", },
 ];
+
+async function fetchRequests() {
+  loading.value = true;
+  try {
+    const data = await BudgetRequestService.getAll();
+    budgets.value = data;
+  } catch (error) {
+    console.error("Error al cargar los presupuestos", error);
+    showSwal({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudieron cargar los presupuestos.',
+      confirmButtonText: 'Aceptar',
+    });
+  } finally {
+    loading.value = false;
+  }
+}
 
 function openCreate() {
   router.push({ name: "BudgetRequestsCreate" });
@@ -98,5 +112,8 @@ function exportCsv() {
   // Aquí iría la lógica para exportar las solicitudes de calendarización presupuestaria a CSV
   console.log("Exportar a CSV");
 }
+onMounted(() => {
+  fetchRequests();
+});
 
 </script>

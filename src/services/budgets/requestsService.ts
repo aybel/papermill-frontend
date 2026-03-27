@@ -17,12 +17,12 @@ export interface BudgetRequest {
 export const BudgetRequestService = {
   async getAll() {
     const response = await api.get(`${API_URL}/${route}`);
-    return response.data.data;
+    return response.data.items;
   },
 
   async getById(id: number) {
     const response = await api.get(`${API_URL}/${route}/${id}`);
-    return response.data.data;
+    return response.data.items;
   },
 
   async create(budgetRequest: Partial<BudgetRequest>) {
