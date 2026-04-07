@@ -60,12 +60,12 @@ const pagination = reactive({
 const headers: BaseTableHeader[] = [
   { title: "Numero de solicitud", key: "request_number" },
   { title: "Año", key: "year" },
-  { title: "Fecha de registro", key: "submitted_at" },
-  { title: "Rubro", key: "category", sortable: false },
-  { title: "Departamento", key: "department", sortable: false },
-  { title: "Total solicitado", key: "total_requested", sortable: false },
+  { title: "Fecha de registro", key: "created_at" },
+  { title: "Rubro", key: "category_name", sortable: false },
+  { title: "Departamento", key: "department_name", sortable: false },
+  { title: "Total solicitado", key: "estimated_total", sortable: false, align: "end", format: "currency" },
   { title: "Notas", key: "notes", sortable: false },
-  { title: "Estado", key: "budget_request_status_id", sortable: false, },
+  { title: "Estado", key: "status_name", sortable: false, },
   { title: "Acciones", key: "actions", sortable: false, align: "end", },
 ];
 

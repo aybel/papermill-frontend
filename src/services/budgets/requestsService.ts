@@ -12,12 +12,17 @@ export interface BudgetRequest {
   notes: string;
   created_at: string | null;
   updated_at: string | null;
+  department_name: string;
+  estimated_total: number;
+  status_name: string;
+  category_name:string,
 }
 
 export const BudgetRequestService = {
   async getAll() {
     const response = await api.get(`${API_URL}/${route}`);
-    return Array.isArray(response?.data?.items) ? response.data.items : [];
+    console.log("Response from getAll:", response.data.data.items);
+    return Array.isArray(response?.data?.data?.items) ? response.data.data.items : [];
   },
 
   async getById(id: number) {
@@ -26,7 +31,7 @@ export const BudgetRequestService = {
   },
 
   async create(budgetRequest: Partial<BudgetRequest>) {
-    
+
     const response = await api.post(`${API_URL}/${route}`, budgetRequest);
     return response.data;
   },

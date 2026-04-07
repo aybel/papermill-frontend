@@ -54,6 +54,14 @@
       >
         <slot :name="slotName" v-bind="slotProps" />
       </template>
+
+      <template
+        v-for="col in formattedColumns"
+        :key="`fmt-${col.key}`"
+        v-slot:[`item.${col.key}`]="{ item }"
+      >
+        <span class="d-flex justify-end font-weight-medium">$ {{ formatAmount(item[col.key]) }}</span>
+      </template>
     </v-data-table>
   </div>
 </template>
@@ -61,6 +69,7 @@
 <script setup lang="ts">
 import { computed, ref, useSlots, watch } from "vue";
 import type { PropType } from "vue";
+import { formatAmount } from "@/utils/numberFormat";
 
 export type BaseTableHeader = {
   title: string;
@@ -68,6 +77,7 @@ export type BaseTableHeader = {
   sortable?: boolean;
   align?: "start" | "center" | "end";
   width?: string | number;
+  format?: "currency";
 };
 
 export type BaseSortItem = {
@@ -157,6 +167,12 @@ const itemsLength = computed(() =>
 const slots = useSlots();
 const itemSlotNames = computed(() =>
   Object.keys(slots).filter((name) => name.startsWith("item."))
+);
+
+const formattedColumns = computed(() =>
+  props.headers.filter(
+    (h) => h.format === "currency" && !slots[`item.${h.key}`]
+  )
 );
 
 function onSearch(value: string) {

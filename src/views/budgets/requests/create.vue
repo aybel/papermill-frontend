@@ -211,7 +211,7 @@ async function handleSave() {
 
         const created = await BudgetRequestService.create(newRequest);
         if (created.success) {
-            headerForm.folio = created.data.folio;
+            headerForm.folio = created.data.request_number;
             await showSwal({
                 icon: 'success',
                 title: 'Solicitud creada',
