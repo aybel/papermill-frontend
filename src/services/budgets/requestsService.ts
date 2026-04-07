@@ -17,7 +17,7 @@ export interface BudgetRequest {
 export const BudgetRequestService = {
   async getAll() {
     const response = await api.get(`${API_URL}/${route}`);
-    return response.data.items;
+    return Array.isArray(response?.data?.items) ? response.data.items : [];
   },
 
   async getById(id: number) {
@@ -26,6 +26,7 @@ export const BudgetRequestService = {
   },
 
   async create(budgetRequest: Partial<BudgetRequest>) {
+    
     const response = await api.post(`${API_URL}/${route}`, budgetRequest);
     return response.data;
   },

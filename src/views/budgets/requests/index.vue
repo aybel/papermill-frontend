@@ -3,9 +3,9 @@
     subtitle="Gestiona las solicitudes de  calendarización presupuestaria.">
   </DetailPage>
   <UiParentCard>
-    <DataTable :headers="headers" :items="budgets" :loading="loading" v-model:search="search"
-      :page="pagination.page" :items-per-page="pagination.itemsPerPage" :total-items="budgets.length"
-      @update:page="pagination.page = $event" @update:itemsPerPage="pagination.itemsPerPage = $event">
+    <DataTable :headers="headers" :items="budgets" :loading="loading" v-model:search="search" :page="pagination.page"
+      :items-per-page="pagination.itemsPerPage" :total-items="budgets.length" @update:page="pagination.page = $event"
+      @update:itemsPerPage="pagination.itemsPerPage = $event">
       <template #top>
         <div class="d-flex flex-wrap align-center justify-space-between px-4 py-3 ga-3">
           <v-text-field v-model="search" density="comfortable" variant="outlined" clearable hide-details
@@ -73,7 +73,7 @@ async function fetchRequests() {
   loading.value = true;
   try {
     const data = await BudgetRequestService.getAll();
-    budgets.value = data;
+    budgets.value = Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Error al cargar los presupuestos", error);
     showSwal({
@@ -103,8 +103,28 @@ function openView(item: BudgetRequest) {
 
 function remove(item: BudgetRequest) {
   if (item.id === null) return;
-  // Aquí iría la lógica para eliminar la solicitud de calendarización presupuestaria
-  // Por ejemplo, podrías mostrar un diálogo de confirmación y luego llamar a un servicio para eliminarla
+  confirmSwal({
+    title: '¿Estás seguro?',
+    text: 'Esta acción no se puede deshacer.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Lógica para eliminar la solicitud
+      console.log("Eliminar solicitud con ID:", item.id);
+      // Aquí podrías llamar a un servicio para eliminar la solicitud y luego recargar la lista
+      // Por ejemplo:
+      // BudgetRequestService.delete(item.id).then(() => {
+      //   showSwal({ icon: 'success', title: 'Eliminado', text: 'La solicitud ha sido eliminada.' });
+      //   fetchRequests();
+      // }).catch(error => {
+      //   console.error("Error al eliminar la solicitud", error);
+      //   showSwal({ icon: 'error', title: 'Error', text: 'No se pudo eliminar la solicitud.' });
+      // });
+    }
+  });
   console.log("Eliminar solicitud con ID:", item.id);
 }
 

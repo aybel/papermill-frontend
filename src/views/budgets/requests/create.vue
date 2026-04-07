@@ -4,32 +4,32 @@
     <BaseBreadcrumbs :items="breadcrumbItems" />
     <FormPageActions :loading="saving" :back-to="{ name: 'BudgetRequests' }" @save="handleSave" />
     <UiParentCard class="mb-6">
-        <v-form>
-            <v-row>
-                <v-col cols="12">
+        <v-form ref="headerFormRef">
+            <v-row class="px-4 py-3 d-flex justify-content-center" :gap="24">
+                <v-col cols="8">
                     <h3 class="text-h6 mb-2">Encabezado</h3>
                     <v-divider class="mb-4" />
                 </v-col>
 
-                <v-col cols="12">
+                <v-col cols="8">
                     <v-text-field v-model="headerForm.folio" label="Folio" variant="outlined" density="comfortable"
-                        :readonly="true" />
+                        readonly />
                 </v-col>
 
-                <v-col cols="12">
+                <v-col cols="8">
                     <label class="mb-1 font-weight-medium">Fecha de creación</label>
                     <DatePicker v-model="headerForm.created" placeholder="Selecciona la fecha" />
                 </v-col>
 
-                <v-col cols="12">
+                <v-col cols="8">
                     <v-select v-model="headerForm.budget_category_id" :items="categoryOptions" item-title="name"
                         item-value="id" label="Categoría presupuestaria" variant="outlined" density="comfortable"
                         :loading="loadingLookups" />
                 </v-col>
 
-                <v-col cols="12">
+                <v-col cols="8">
                     <v-textarea v-model="headerForm.notes" label="Notas" variant="outlined" density="comfortable"
-                        rows="2" auto-grow />
+                        rows="4" auto-grow />
                 </v-col>
             </v-row>
         </v-form>
@@ -100,6 +100,7 @@ import { BudgetRequestService, type BudgetRequest } from "@/services/budgets/req
 import DatePicker from "@/components/shared/DatePicker.vue";
 import '@vuepic/vue-datepicker/dist/main.css';
 import { showSwal, confirmSwal } from "@/utils/alerts";
+import { firstError } from "@/utils/errors";
 
 type HeaderForm = {
     folio: string;
@@ -127,6 +128,7 @@ type RequestItem = {
 };
 
 const router = useRouter();
+const headerFormRef = ref<any>(null);
 const loadingLookups = ref(false);
 const saving = ref(false);
 const categoryOptions = ref<BudgetCategory[]>([]);
@@ -194,29 +196,55 @@ function saveItem() {
 }
 //Guarda la solicitud
 async function handleSave() {
-    const isValid = await headerForm.value?.validate();
+    const isValid = await headerFormRef.value?.validate();
     if (isValid?.valid === false) return;
 
     saving.value = true;
-    const newRequest: BudgetRequest = {
-        budget_request_status_id: "draft",
-        year: new Date(headerForm.created).getFullYear(),
-        notes: headerForm.notes,
-        created: headerForm.created,
-        budget_category_id: headerForm.budget_category_id ?? 0,
-    };
-    const created = await BudgetRequestService.create(newRequest);
-    if (created.success) {
-        headerForm.folio = created.data.folio;
+    try {
+        const newRequest: Partial<BudgetRequest> = {
+            budget_request_status_id: "draft",
+            year: new Date(headerForm.created).getFullYear(),
+            notes: headerForm.notes,
+            created: headerForm.created,
+            budget_category_id: headerForm.budget_category_id ?? 0,
+        };
+
+        const created = await BudgetRequestService.create(newRequest);
+        if (created.success) {
+            headerForm.folio = created.data.folio;
+            await showSwal({
+                icon: 'success',
+                title: 'Solicitud creada',
+                text: created.data.message || 'El registro se guardó correctamente',
+                confirmButtonText: 'Aceptar',
+            });
+            return;
+        }
+
         showSwal({
-            icon: 'success',
-            title: 'Solicitud creada',
-            text: created.data.message || 'El registro se guardó correctamente',
+            icon: 'error',
+            title: 'Error',
+            text: created?.message || 'No se pudo crear la solicitud',
             confirmButtonText: 'Aceptar',
-        }).then(() => {
-            //no hace nada por lo mientras
-            saving.value = false;
         });
+    } catch (err: any) {
+        console.error('Error guardando solicitud:', err);
+        if (err?.response?.status === 422) {
+            const backendErrors = err.response?.data?.errors || {};
+            const allMessages = Object.values(backendErrors)
+                .flatMap((value) => Array.isArray(value) ? value : [String(value)])
+                .filter(Boolean);
+
+            const msg = allMessages.length > 0
+                ? allMessages.join(' ')
+                : firstError(backendErrors) || err.response?.data?.message || 'Errores de validación';
+
+            showSwal({ icon: 'error', title: 'Validación', text: msg, confirmButtonText: 'Aceptar' });
+        } else {
+            showSwal({ icon: 'error', title: 'Error', text: 'Error inesperado', confirmButtonText: 'Aceptar' });
+        }
+    } finally {
+        saving.value = false;
     }
 
 }
