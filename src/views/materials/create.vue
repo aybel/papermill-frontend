@@ -96,7 +96,7 @@ import { materialService, type Material } from '@/services/materialService';
 import { firstError } from '@/utils/errors';
 import { showSwal } from '@/utils/alerts';
 import { materialTypeService } from '@/services/materialTypeService';
-import { materialCategoryService } from '@/services/materialCategories';
+import { materialCategoryService } from '@/services/materialCategoryService';
 import { unitsOfMeasureService } from '@/services/unitsOfMeasureService';
 import { catalogsService } from '@/services/catalogsService';
 

@@ -1,5 +1,10 @@
 <template>
     <UiParentCard>
+        <div class="d-flex align-center justify-space-between px-4 py-3">
+            <h3 class="text-h6">Artículos</h3>
+            <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateModal">Agregar artículo</v-btn>
+        </div>
+
         <DataTable :headers="headers" :items="budgetRequestItems" :loading="loading" v-model:search="search"
             :page="pagination.page" :items-per-page="pagination.itemsPerPage" :total-items="budgetRequestItems.length"
             @update:page="pagination.page = $event" @update:itemsPerPage="pagination.itemsPerPage = $event">
@@ -16,24 +21,37 @@
             </template>
         </DataTable>
     </UiParentCard>
+
+    <CreateModal v-model="itemDialog" title="Agregar artículo"
+        subtitle="Captura la información del artículo para esta solicitud" submit-label="Cerrar"
+        @submit="itemDialog = false" :max-width="980" :persistent="false">
+        <RequestItemsCreateView :request-id="props.requestId" embedded @saved="handleItemSaved" />
+    </CreateModal>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { reactive, ref,onMounted,computed } from "vue";
+import { reactive, ref, watch } from "vue";
 import DataTable, { BaseTableHeader } from "@/components/base/DataTable.vue";
 import UiParentCard from "@/components/shared/UiParentCard.vue";
-import { showSwal, confirmSwal } from "@/utils/alerts";
+import { showSwal } from "@/utils/alerts";
+import CreateModal from "@/components/base/CreateModal.vue";
+import RequestItemsCreateView from "@/views/budgets/request-items/create.vue";
 import {
     BudgetRequestItemsService,
     type BudgetRequestItems
 } from "@/services/budgets/requestItemsService";
+
+const props = defineProps<{
+    requestId?: number | null;
+}>();
 
 const router = useRouter();
 const budgetRequestItems = ref<BudgetRequestItems[]>([]);
 const loading = ref(false);
 const deletingId = ref<number | null>(null);
 const search = ref("");
+const itemDialog = ref(false);
 const pagination = reactive({
     page: 1,
     itemsPerPage: 50,
@@ -49,10 +67,15 @@ const headers: BaseTableHeader[] = [
     { title: "Acciones", key: "actions", sortable: false, align: "end", },
 ];
 async function fetchRequestItems() {
+    if (!props.requestId || props.requestId <= 0) {
+        budgetRequestItems.value = [];
+        return;
+    }
+
     loading.value = true;
     try {
-        const data = await BudgetRequestItemsService.getAll();
-        budgetRequestItems.value = data;
+        const data = await BudgetRequestItemsService.getByRequestId(props.requestId);
+        budgetRequestItems.value = Array.isArray(data) ? data : [];
     } catch (error) {
         console.error("Error al cargar los articulos", error);
         showSwal({
@@ -64,6 +87,25 @@ async function fetchRequestItems() {
     } finally {
         loading.value = false;
     }
+}
+
+async function openCreateModal() {
+    if (!props.requestId || props.requestId <= 0) {
+        await showSwal({
+            icon: 'warning',
+            title: 'Guarda el encabezado primero',
+            text: 'Debes guardar la solicitud para obtener el id y agregar artículos.',
+            confirmButtonText: 'Aceptar',
+        });
+        return;
+    }
+
+    itemDialog.value = true;
+}
+
+function handleItemSaved() {
+    itemDialog.value = false;
+    fetchRequestItems();
 }
 
 function startEdit(item: BudgetRequestItems) {
@@ -83,8 +125,12 @@ function remove(item: BudgetRequestItems) {
     console.log("Eliminar solicitud con ID:", item.id);
 }
 
-onMounted(() => {
-    fetchRequestItems();
-});
+watch(
+    () => props.requestId,
+    () => {
+        fetchRequestItems();
+    },
+    { immediate: true }
+);
 
 </script>

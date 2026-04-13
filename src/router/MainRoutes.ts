@@ -90,6 +90,11 @@ const MainRoutes = {
       component: () => import("@/views/budgets/requests/show.vue"),
     },
     {
+      path: "budget-request-items/create", //Crear artículo de solicitud presupuestaria
+      name: "BudgetRequestItemsCreate",
+      component: () => import("@/views/budgets/request-items/create.vue"),
+    },
+    {
       path: "budget-authorization", //Autorización presupuestaria
       name: "BudgetAuthorization",
       component: () => import("@/views/budgets/authorization/index.vue"),

@@ -5,6 +5,7 @@ const route = "budget-requests";
 
 export interface BudgetRequest {
   id: number | null;
+  request_number?: string;
   budget_request_status_id: string;
   budget_category_id: number;
   created:string
@@ -27,7 +28,7 @@ export const BudgetRequestService = {
 
   async getById(id: number) {
     const response = await api.get(`${API_URL}/${route}/${id}`);
-    return response.data.items;
+    return response.data.data;
   },
 
   async create(budgetRequest: Partial<BudgetRequest>) {

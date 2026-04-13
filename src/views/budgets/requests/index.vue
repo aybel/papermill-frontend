@@ -103,29 +103,28 @@ function openView(item: BudgetRequest) {
 
 function remove(item: BudgetRequest) {
   if (item.id === null) return;
+  const requestId = item.id;
+  const requestNumber = item.request_number ?? requestId;
+
   confirmSwal({
-    title: '¿Estás seguro?',
+    title: `¿Estás seguro de eliminar la solicitud ${requestNumber} y los artículos asociados?`,
     text: 'Esta acción no se puede deshacer.',
     icon: 'warning',
-    showCancelButton: true,
     confirmButtonText: 'Sí, eliminar',
     cancelButtonText: 'Cancelar',
   }).then((result) => {
     if (result.isConfirmed) {
-      // Lógica para eliminar la solicitud
-      console.log("Eliminar solicitud con ID:", item.id);
-      // Aquí podrías llamar a un servicio para eliminar la solicitud y luego recargar la lista
-      // Por ejemplo:
-      // BudgetRequestService.delete(item.id).then(() => {
-      //   showSwal({ icon: 'success', title: 'Eliminado', text: 'La solicitud ha sido eliminada.' });
-      //   fetchRequests();
-      // }).catch(error => {
-      //   console.error("Error al eliminar la solicitud", error);
-      //   showSwal({ icon: 'error', title: 'Error', text: 'No se pudo eliminar la solicitud.' });
-      // });
+      console.log("Eliminar solicitud con ID:", requestId);
+      BudgetRequestService.delete(requestId).then(() => {
+        showSwal({ icon: 'success', title: 'Eliminado', text: 'La solicitud ha sido eliminada.' });
+        fetchRequests();
+      }).catch(error => {
+        console.error("Error al eliminar la solicitud", error);
+        showSwal({ icon: 'error', title: 'Error', text: 'No se pudo eliminar la solicitud.' });
+      });
     }
   });
-  console.log("Eliminar solicitud con ID:", item.id);
+  console.log("Eliminar solicitud con ID:", requestId);
 }
 
 function exportCsv() {

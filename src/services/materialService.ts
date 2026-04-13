@@ -29,8 +29,10 @@ export interface Material {
 }
 
 export const materialService = {
-    async getAll() {
-        const response = await api.get(`${API_URL}/${route}`);
+    async getAll(params: Record<string, string> = {}) {
+        const queryString = new URLSearchParams(params).toString();
+        const endpoint = queryString ? `${API_URL}/${route}?${queryString}` : `${API_URL}/${route}`;
+        const response = await api.get(endpoint);
         return response.data.data;
     },
 

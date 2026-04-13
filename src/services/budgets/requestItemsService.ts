@@ -32,7 +32,10 @@ export const BudgetRequestItemsService = {
   },
 
   async update(id: number, budgetRequestItem: Partial<BudgetRequestItems>) {
-    const response = await api.put(`${API_URL}/${route}/${id}`, budgetRequestItem);
+    const response = await api.put(
+      `${API_URL}/${route}/${id}`,
+      budgetRequestItem,
+    );
     return response.data;
   },
 
@@ -54,5 +57,13 @@ export const BudgetRequestItemsService = {
       },
     );
     return response.data;
+  },
+
+  async getByRequestId(requestId: number) {
+    const queryString = new URLSearchParams({
+      search: requestId.toString(),
+    }).toString();
+    const response = await api.get(`${API_URL}/${route}?${queryString}`);
+    return response.data.data;
   },
 };

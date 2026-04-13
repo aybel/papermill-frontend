@@ -35,71 +35,23 @@
         </v-form>
     </UiParentCard>
 
-    <UiParentCard>
-        <DataTable :headers="itemHeaders" :items="requestItems" :loading="false" :hide-default-search="true"
-            :show-footer="false">
-            <template #top>
-                <div class="d-flex align-center justify-space-between px-4 py-3">
-                    <h3 class="text-h6">Artículos</h3>
-                    <v-btn color="primary" prepend-icon="mdi-plus" @click="openItemModal">Agregar artículo</v-btn>
-                </div>
-            </template>
-        </DataTable>
-    </UiParentCard>
+    <RequestItemsIndex :request-id="currentRequestId" />
 
-    <div class="mt-4">
-        <FormPageActions :loading="saving" :back-to="{ name: 'BudgetRequests' }" @save="handleSave" />
-    </div>
-
-    <CreateModal v-model="itemDialog" title="Agregar artículo"
-        subtitle="Captura la información del material para agregarlo a la solicitud" submit-label="Guardar artículo"
-        @submit="saveItem">
-        <v-row>
-            <v-col cols="12">
-                <v-autocomplete v-model="itemForm.material_id" :items="materialOptions" item-title="name"
-                    item-value="id" label="Material" variant="outlined" density="comfortable" clearable
-                    :loading="loadingLookups" />
-            </v-col>
-
-            <v-col cols="12" md="6">
-                <v-text-field v-model.number="itemForm.quantity" label="Cantidad" type="number" min="0"
-                    variant="outlined" density="comfortable" />
-            </v-col>
-
-            <v-col cols="12" md="6">
-                <v-text-field v-model.number="itemForm.estimated_price" label="Precio estimado" type="number" min="0"
-                    step="0.01" variant="outlined" density="comfortable" />
-            </v-col>
-
-            <v-col cols="12">
-                <v-textarea v-model="itemForm.technical_specifications" label="Especificaciones técnicas"
-                    variant="outlined" density="comfortable" rows="2" auto-grow />
-            </v-col>
-
-            <v-col cols="12">
-                <v-textarea v-model="itemForm.quality_requirements" label="Requerimientos de calidad" variant="outlined"
-                    density="comfortable" rows="2" auto-grow />
-            </v-col>
-        </v-row>
-    </CreateModal>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
 import { onMounted, reactive, ref } from "vue";
 import BaseBreadcrumbs, { type BreadcrumbItem } from "@/components/base/BaseBreadcrumbs.vue";
-import DataTable, { type BaseTableHeader } from "@/components/base/DataTable.vue";
-import CreateModal from "@/components/base/CreateModal.vue";
+import RequestItemsIndex from "@/views/budgets/request-items/index.vue";
+
 import DetailPage from "@/components/base/DetailPage.vue";
 import FormPageActions from "@/components/base/FormPageActions.vue";
 import UiParentCard from "@/components/shared/UiParentCard.vue";
 import { BudgetCategoryService, type BudgetCategory } from "@/services/budgets/categoriesService";
-import { materialService, type Material } from "@/services/materialService";
-import { BudgetRequestItemsService, type BudgetRequestItems } from "@/services/budgets/requestItemsService";
 import { BudgetRequestService, type BudgetRequest } from "@/services/budgets/requestsService";
 import DatePicker from "@/components/shared/DatePicker.vue";
 import '@vuepic/vue-datepicker/dist/main.css';
-import { showSwal, confirmSwal } from "@/utils/alerts";
+import { showSwal } from "@/utils/alerts";
 import { firstError } from "@/utils/errors";
 
 type HeaderForm = {
@@ -109,46 +61,17 @@ type HeaderForm = {
     notes: string;
 };
 
-type ItemForm = {
-    material_id: number | null;
-    quantity: number;
-    estimated_price: number;
-    technical_specifications: string;
-    quality_requirements: string;
-};
-
-type RequestItem = {
-    id: number;
-    material_id: number | null;
-    material_name: string;
-    quantity: number;
-    estimated_price: number;
-    technical_specifications: string;
-    quality_requirements: string;
-};
-
-const router = useRouter();
 const headerFormRef = ref<any>(null);
 const loadingLookups = ref(false);
 const saving = ref(false);
 const categoryOptions = ref<BudgetCategory[]>([]);
-const materialOptions = ref<Material[]>([]);
-const itemDialog = ref(false);
-const requestItems = ref<RequestItem[]>([]);
-const itemSeq = ref(1);
+const currentRequestId = ref<number | null>(null);
+
 
 const breadcrumbItems: BreadcrumbItem[] = [
     { title: "Inicio", to: { name: "Home" } },
     { title: "Solicitudes presupuestarias", to: { name: "BudgetRequests" } },
     { title: "Nueva solicitud", disabled: true },
-];
-
-const itemHeaders: BaseTableHeader[] = [
-    { title: "Material", key: "material_name" },
-    { title: "Cantidad", key: "quantity" },
-    { title: "Precio estimado", key: "estimated_price" },
-    { title: "Especificaciones técnicas", key: "technical_specifications", sortable: false },
-    { title: "Requerimientos de calidad", key: "quality_requirements", sortable: false },
 ];
 
 const headerForm = reactive<HeaderForm>({
@@ -158,46 +81,21 @@ const headerForm = reactive<HeaderForm>({
     notes: "",
 });
 
-const itemForm = reactive<ItemForm>({
-    material_id: null,
-    quantity: 1,
-    estimated_price: 0,
-    technical_specifications: "",
-    quality_requirements: "",
-});
-
-function resetItemForm() {
-    itemForm.material_id = null;
-    itemForm.quantity = 1;
-    itemForm.estimated_price = 0;
-    itemForm.technical_specifications = "";
-    itemForm.quality_requirements = "";
-}
-
-function openItemModal() {
-    resetItemForm();
-    itemDialog.value = true;
-}
-
-function saveItem() {
-    const selectedMaterial = materialOptions.value.find((material) => material.id === itemForm.material_id);
-
-    requestItems.value.push({
-        id: itemSeq.value++,
-        material_id: itemForm.material_id,
-        material_name: selectedMaterial?.name ?? "",
-        quantity: itemForm.quantity,
-        estimated_price: itemForm.estimated_price,
-        technical_specifications: itemForm.technical_specifications,
-        quality_requirements: itemForm.quality_requirements,
-    });
-
-    itemDialog.value = false;
-}
 //Guarda la solicitud
 async function handleSave() {
     const isValid = await headerFormRef.value?.validate();
     if (isValid?.valid === false) return;
+
+    const selectedCategoryId = Number(headerForm.budget_category_id);
+    if (!Number.isInteger(selectedCategoryId) || selectedCategoryId <= 0) {
+        await showSwal({
+            icon: 'warning',
+            title: 'Categoría requerida',
+            text: 'Selecciona una categoría presupuestaria antes de guardar.',
+            confirmButtonText: 'Aceptar',
+        });
+        return;
+    }
 
     saving.value = true;
     try {
@@ -206,11 +104,22 @@ async function handleSave() {
             year: new Date(headerForm.created).getFullYear(),
             notes: headerForm.notes,
             created: headerForm.created,
-            budget_category_id: headerForm.budget_category_id ?? 0,
+            budget_category_id: selectedCategoryId,
         };
 
         const created = await BudgetRequestService.create(newRequest);
         if (created.success) {
+            const createdRequestId = Number(
+                created?.data?.id
+                ?? created?.data?.item?.id
+                ?? created?.data?.request?.id
+                ?? created?.id
+            );
+
+            if (Number.isInteger(createdRequestId) && createdRequestId > 0) {
+                currentRequestId.value = createdRequestId;
+            }
+
             headerForm.folio = created.data.request_number;
             await showSwal({
                 icon: 'success',
@@ -224,7 +133,7 @@ async function handleSave() {
         showSwal({
             icon: 'error',
             title: 'Error',
-            text: created?.message || 'No se pudo crear la solicitud',
+            text: created.data.message || 'No se pudo crear la solicitud',
             confirmButtonText: 'Aceptar',
         });
     } catch (err: any) {
@@ -240,6 +149,8 @@ async function handleSave() {
                 : firstError(backendErrors) || err.response?.data?.message || 'Errores de validación';
 
             showSwal({ icon: 'error', title: 'Validación', text: msg, confirmButtonText: 'Aceptar' });
+        } if (err?.response?.status === 500) {
+            showSwal({ icon: 'error', title: 'Error del servidor', text: err.response?.data?.message || 'Error del servidor', confirmButtonText: 'Aceptar' });
         } else {
             showSwal({ icon: 'error', title: 'Error', text: 'Error inesperado', confirmButtonText: 'Aceptar' });
         }
@@ -252,13 +163,13 @@ async function handleSave() {
 async function loadLookups() {
     loadingLookups.value = true;
     try {
-        const [categories, materials] = await Promise.all([
-            BudgetCategoryService.getAll(),
-            materialService.getAll(),
-        ]);
+        const categories = await BudgetCategoryService.getAll();
 
-        categoryOptions.value = categories;
-        materialOptions.value = materials;
+        categoryOptions.value = Array.isArray(categories)
+            ? categories
+            : Array.isArray((categories as any)?.items)
+                ? (categories as any).items
+                : [];
     } finally {
         loadingLookups.value = false;
     }
