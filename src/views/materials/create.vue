@@ -25,7 +25,7 @@
 						<v-select v-model="form.unit_of_measure_id as any" :items="unitsOfMeasure" item-title="name"
 							item-value="id" label="Unidad de medida" :rules="[rules.required]" required />
 					</v-col>
-					
+
 					<v-col cols="12" md="4">
 						<v-select v-model="form.currency_id as any" :items="currencies" item-title="name"
 							item-value="id" label="Moneda" :rules="[rules.required]" required />
@@ -95,8 +95,10 @@ import { useRouter } from 'vue-router';
 import { materialService, type Material } from '@/services/materialService';
 import { firstError } from '@/utils/errors';
 import { showSwal } from '@/utils/alerts';
-import { materialTypeService } from '@/services/materialTypeService';
-import { materialCategoryService } from '@/services/materialCategoryService';
+import { materialTypeService } from '@/services/material_type.service';
+import { materialCategoryService } from '@/services/material_category.service';
+import type { MaterialCategory } from '@/types';
+import { Filter } from '@/types/filter.helper';
 import { unitsOfMeasureService } from '@/services/unitsOfMeasureService';
 import { catalogsService } from '@/services/catalogsService';
 
@@ -105,7 +107,7 @@ const router = useRouter();
 const loading = ref(false);
 const formValid = ref(true);
 const formRef = ref();
-const categories = ref([]);
+const categories = ref<MaterialCategory[]>([]);
 const materialTypes = ref([]);
 const unitsOfMeasure = ref([]);
 const currencies = ref([]);
@@ -132,14 +134,26 @@ const form = reactive<Partial<Material>>({
 });
 const fetchSelects = async () => {
 	const [categoriesAll, materialTypesAll, unitsOfMeasureAll, currenciesAll] = await Promise.all([
-		materialCategoryService.getAll(),
-		materialTypeService.getAll(),
+		materialCategoryService.filter({
+			filters: [
+				Filter.notNull('parent_id') as any
+			],
+			order_by: { column: 'name', direction: 'asc' },
+			pagination: null as any
+		}),
+		materialTypeService.filter({
+			filters: [
+				Filter.equals('is_active', true) as any
+			],
+			order_by: { column: 'name', direction: 'asc' },
+			pagination: null as any
+		}),
 		unitsOfMeasureService.getAll(),
 		catalogsService.getCurrencies(),
 	]);
 
-	categories.value = categoriesAll;
-	materialTypes.value = materialTypesAll;
+	categories.value = categoriesAll.data;
+	materialTypes.value = materialTypesAll.data;
 	unitsOfMeasure.value = unitsOfMeasureAll;
 	currencies.value = currenciesAll;
 };

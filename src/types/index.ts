@@ -4,9 +4,6 @@
 export * from './filters.types';
 export * from './api.types';
 
-// Entidades
+// Entidades específicas
 export * from './entities/material-category.types';
-
-// aqi van las otras entidades 
-// export * from './entities/user.types';
-// export * from './entities/product.types';
+export * from './entities/material-types.types';

@@ -44,7 +44,7 @@ import { computed } from "vue";
 import { useRoute, useRouter } from 'vue-router';
 import UiParentCard from "@/components/shared/UiParentCard.vue";
 import { materialService, type Material } from "@/services/materialService";
-import { materialCategoryService, type MaterialCategory } from "@/services/materialCategoryService";
+import { materialCategoryService, type MaterialCategory } from "@/services/material_category.service";
 
 import { onMounted, reactive, ref } from "vue";
 import { BudgetRequestItemsService, type BudgetRequestItems } from "@/services/budgets/requestItemsService";

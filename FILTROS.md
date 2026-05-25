@@ -9,13 +9,12 @@ Este documento describe la implementación del sistema de filtros estructurados 
 ```
 src/
 ├── types/
-│   ├── filters.types.ts          # Tipos genéricos de filtrado
+│   ├── filters.types.ts          # Tipos genéricos de filtrado (+ buildFilterUrl)
 │   ├── api.types.ts              # Tipos genéricos de API
+│   ├── filter.helper.ts          # Helpers para construir filtros (Filter, FilterBuilder)
 │   ├── index.ts                  # Exportaciones centralizadas
 │   └── entities/
 │       └── [entity].types.ts     # Tipos específicos por entidad
-├── helpers/
-│   └── filter.helper.ts          # Helpers para construir filtros
 └── services/
     └── [entity].service.ts       # Servicio de la entidad
 ```
@@ -30,7 +29,7 @@ Los archivos `filters.types.ts` y `api.types.ts` contienen los tipos base y **NO
 
 ---
 
-### 2. Crear Tipos de la Entidad
+### 2. Crear el archivo Tipos de la Entidad para cada entidad ejemplo material-category-types
 
 **Archivo:** `src/types/entities/[entity].types.ts`
 
@@ -73,6 +72,7 @@ export interface [Entity]FilterRequest extends FilterRequest {
     column: [Entity]Field;
     direction: 'asc' | 'desc';
   };
+  pagination?: { page?: number; limit?: number } | null; // null = sin paginación (devuelve todos)
 }
 
 // ============================================
@@ -86,7 +86,7 @@ export type [Entity]SingleResponse = SuccessResponse<[Entity]>;
 
 ---
 
-### 3. Actualizar Exportaciones
+### 3. Actualizar Exportaciones 
 
 **Archivo:** `src/types/index.ts`
 
@@ -97,14 +97,14 @@ export * from './api.types';
 
 // Entidades
 export * from './entities/material-category.types';
-export * from './entities/[entity].types'; // Nueva entidad
+export * from './entities/[entity].types'; // Aqui defines la Nueva entidad
 ```
 
 ---
 
-### 4. Crear/Actualizar Servicio
+### 4. Crear/Actualizar Servicio ejemplo: materialCategory.service.ts
 
-**Archivo:** `src/services/[entity].service.ts`
+**Archivo:** `src/services/[entity].service.ts` 
 
 ```typescript
 import api from "@/plugins/axios";
@@ -113,13 +113,21 @@ import {
   [Entity]ListResponse,
   [Entity]SingleResponse,
   [Entity]FilterRequest,
+  buildFilterUrl,
 } from "@/types";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const route = "[entity-plural]";
 
 export const [entity]Service = {
-  /** Filtros avanzados (POST) */
+  /** Filtros avanzados (GET) — método preferido */
+  async filter(request: [Entity]FilterRequest): Promise<[Entity]ListResponse> {
+    const url = buildFilterUrl(`${API_URL}/${route}/filter`, request);
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  /** Filtros avanzados (POST — alternativa) */
   async filterPost(request: [Entity]FilterRequest): Promise<[Entity]ListResponse> {
     const response = await api.post(`${API_URL}/${route}/filter`, request);
     return response.data;
@@ -135,14 +143,14 @@ export const [entity]Service = {
   // MÉTODOS LEGACY (Mantener temporalmente)
   // ============================================
 
-  /** @deprecated Usar filterPost() en su lugar */
+  /** @deprecated Usar filter() en su lugar */
   async getAll(params?: any) {
     const queryString = params ? new URLSearchParams(params).toString() : '';
     const response = await api.get(`${API_URL}/${route}/all?${queryString}`);
     return response.data;
   },
 
-  /** @deprecated Usar filterPost() con filtro 'ilike' en su lugar */
+  /** @deprecated Usar filter() con filtro 'ilike' en su lugar */
   async search(q: string, perPage: number = 15) {
     const params = new URLSearchParams();
     params.append('q', q);
@@ -199,9 +207,9 @@ export const [entity]Service = {
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { [entity]Service, type [Entity] } from '@/services/[entity].service';
-import { Filter } from '@/helpers/filter.helper';
-import type { PaginationMeta } from '@/types';
+import { [entity]Service } from '@/services/[entity].service';
+import type { [Entity], PaginationMeta } from '@/types';
+import { Filter } from '@/types/filter.helper';
 
 const items       = ref<[Entity][]>([]);
 const loading     = ref(false);
@@ -227,7 +235,7 @@ async function loadItems() {
       filters.push(Filter.contains('name', searchTerm.value));
     }
 
-    const response = await [entity]Service.filterPost({
+    const response = await [entity]Service.filter({
       filters: filters.length > 0 ? filters : undefined,
       order_by: { column: 'name', direction: 'asc' },
       pagination: { page: currentPage.value, limit: 20 },
@@ -276,7 +284,7 @@ onMounted(() => {
 ### FilterBuilder (Programático)
 
 ```typescript
-import { FilterBuilder } from '@/helpers/filter.helper';
+import { FilterBuilder } from '@/types/filter.helper';
 
 const filters = new FilterBuilder()
   .notNull('parent_id')
@@ -288,7 +296,7 @@ const filters = new FilterBuilder()
 ### Filter (Estático)
 
 ```typescript
-import { Filter } from '@/helpers/filter.helper';
+import { Filter } from '@/types/filter.helper';
 
 const filters = [
   Filter.notNull('parent_id'),
@@ -326,7 +334,8 @@ const filters = [
   - [ ] Definir `[Entity]FilterRequest`
   - [ ] Definir tipos de respuesta
 - [ ] Exportar en `types/index.ts`
-- [ ] Actualizar servicio con `filterPost()`
+- [ ] Actualizar servicio con `filter()` (GET) y opcionalmente `filterPost()` (POST)
+- [ ] Importar `buildFilterUrl` desde `@/types` en el servicio
 - [ ] Marcar métodos legacy como `@deprecated`
 - [ ] Implementar en componentes Vue
 - [ ] Probar filtros y paginación
@@ -335,7 +344,61 @@ const filters = [
 
 ## 📝 Ejemplos de Uso
 
-### Filtro simple
+### Filtro simple (GET)
+
+```typescript
+const response = await [entity]Service.filter({
+  filters: [Filter.notNull('parent_id')],
+  order_by: { column: 'name', direction: 'asc' },
+});
+```
+
+### Sin paginación — obtener todos los registros
+
+Hay dos formas de omitir la paginación:
+
+| Forma | Comportamiento |
+|---|---|
+| Omitir `pagination` | El servidor aplica su paginación por defecto |
+| `pagination: null` | Deshabilita la paginación explícitamente; devuelve **todos** los registros |
+
+**Omitiendo el campo (paginación por defecto del servidor):**
+
+```typescript
+const response = await [entity]Service.filter({
+  filters: [Filter.notNull('parent_id')],
+  order_by: { column: 'name', direction: 'asc' },
+  // pagination no incluido → el servidor usa su valor por defecto
+});
+
+if (response.success) {
+  items.value = response.data;
+}
+```
+
+**Con `pagination: null` (todos los registros, sin límite):** Útil para poblar combos/selects.
+
+```typescript
+// Categorías para un select (sin límite de registros)
+const response = await materialCategoryService.filter({
+  filters: [Filter.notNull('parent_id') as any],
+  order_by: { column: 'name', direction: 'asc' },
+  pagination: null,  // ← deshabilita paginación
+});
+categories.value = response.data;
+
+// Tipos de material activos para un select
+const typesResponse = await materialTypeService.filter({
+  filters: [Filter.equals('is_active', true) as any],
+  order_by: { column: 'name', direction: 'asc' },
+  pagination: null,  // ← deshabilita paginación
+});
+materialTypes.value = typesResponse.data;
+```
+
+> **Nota:** `pagination: null` requiere `as any` en los filtros cuando el tipo del campo es más estricto que `string` (`MaterialCategoryField`, `MaterialTypeField`, etc.).
+
+### Filtro simple (POST — alternativa)
 
 ```typescript
 const response = await [entity]Service.filterPost({
@@ -344,10 +407,10 @@ const response = await [entity]Service.filterPost({
 });
 ```
 
-### Múltiples filtros
+### Múltiples filtros con paginación (GET)
 
 ```typescript
-const response = await [entity]Service.filterPost({
+const response = await [entity]Service.filter({
   filters: [
     Filter.notNull('parent_id'),
     Filter.contains('name', 'busqueda'),
@@ -356,20 +419,67 @@ const response = await [entity]Service.filterPost({
   order_by: { column: 'created_at', direction: 'desc' },
   pagination: { page: 1, limit: 30 },
 });
-```
-
-### Con paginación
-
-```typescript
-const response = await [entity]Service.filterPost({
-  filters: [...],
-  pagination: { page: currentPage, limit: itemsPerPage },
-});
 
 if (response.success) {
-  items.value      = response.data;
-  totalPages.value = response.meta.last_page;
+  items.value      = response.data;          // [Entity][]
+  totalPages.value = response.meta.last_page; // PaginationMeta
 }
+```
+
+### Con `FilterBuilder` encadenado
+
+```typescript
+import { FilterBuilder } from '@/types/filter.helper';
+
+const filters = new FilterBuilder()
+  .contains('name', 'papel')
+  .greaterOrEqual('id', 10)
+  .inList('status', ['active', 'pending'])
+  .build();
+
+const response = await [entity]Service.filter({
+  filters,
+  order_by: { column: 'created_at', direction: 'desc' },
+  pagination: { page: 2, limit: 15 },
+});
+```
+
+---
+
+### Obtener elemento único con `getById` (GET)
+
+```typescript
+import { [entity]Service } from '@/services/[entity].service';
+
+// Obtener un registro por su ID primario
+const response = await [entity]Service.getById(42);
+
+// La URL generada sería:
+// GET /[entity-plural]/42
+
+if (response.success) {
+  const item = response.data;   // [Entity]
+  console.log(item.name);
+}
+```
+
+Ejemplo en un componente Vue (detalle):
+
+```typescript
+import { ref, onMounted } from 'vue';
+import { [entity]Service, type [Entity] } from '@/services/[entity].service';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const item  = ref<[Entity] | null>(null);
+
+onMounted(async () => {
+  const id       = Number(route.params.id);
+  const response = await [entity]Service.getById(id);
+  if (response.success) {
+    item.value = response.data;
+  }
+});
 ```
 
 ---

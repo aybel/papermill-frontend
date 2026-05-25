@@ -2,9 +2,7 @@
 
 import api from "@/plugins/axios";
 import { 
-  FilterRequest,
   buildFilterUrl,
-  MaterialCategory,
   MaterialCategoryListResponse,
   MaterialCategorySingleResponse,
   MaterialCategoryFilterRequest 
