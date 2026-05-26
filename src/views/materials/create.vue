@@ -99,7 +99,7 @@ import { materialTypeService } from '@/services/material_type.service';
 import { materialCategoryService } from '@/services/material_category.service';
 import type { MaterialCategory } from '@/types';
 import { Filter } from '@/types/filter.helper';
-import { unitsOfMeasureService } from '@/services/unitsOfMeasureService';
+import { unitsMeasureService } from '@/services/units-measure.service';
 import { catalogsService } from '@/services/catalogsService';
 
 
@@ -108,9 +108,9 @@ const loading = ref(false);
 const formValid = ref(true);
 const formRef = ref();
 const categories = ref<MaterialCategory[]>([]);
-const materialTypes = ref([]);
-const unitsOfMeasure = ref([]);
-const currencies = ref([]);
+const materialTypes = ref<any[]>([]);
+const unitsOfMeasure = ref<any[]>([]);
+const currencies = ref<any[]>([]);
 const errors = ref<Record<string, string[]>>({});
 
 const form = reactive<Partial<Material>>({
@@ -148,13 +148,19 @@ const fetchSelects = async () => {
 			order_by: { column: 'name', direction: 'asc' },
 			pagination: null as any
 		}),
-		unitsOfMeasureService.getAll(),
+		unitsMeasureService.filter({
+			filters: [
+				Filter.equals('is_active', true) as any
+			],
+			order_by: { column: 'name', direction: 'asc' },
+			pagination: null as any
+		}),
 		catalogsService.getCurrencies(),
 	]);
 
 	categories.value = categoriesAll.data;
 	materialTypes.value = materialTypesAll.data;
-	unitsOfMeasure.value = unitsOfMeasureAll;
+	unitsOfMeasure.value = unitsOfMeasureAll.data;
 	currencies.value = currenciesAll;
 };
 const rules = {
