@@ -1,0 +1,39 @@
+---
+references:
+  - "File: /src/composables/useMenuAdapter.ts"
+generationTime: 2026-06-04T17:32:33.672Z
+---
+flowchart TD
+    A["Call useMenuAdapter()"] --> B["Define adaptMenuItem(item)"]
+    B --> C["Define adaptMenu(semanticMenu)"]
+    C --> D["Return object with adaptMenu"]
+
+    D -.-> E["Call adaptMenu(semanticMenu)"]
+    E --> F["Map semanticMenu with adaptMenuItem"]
+    F -->|for each item| I["Call adaptMenuItem(item)"]
+    F --> G["Filter truthy adapted items"]
+    G --> H["Return adapted menu array"]
+
+    I --> J["Initialize adapted = {}"]
+    J --> K{"item.type?"}
+    K -->|header| L["Set adapted.header = item.name"]
+    K -->|"module / group / link"| M["Set adapted.title and adapted.to = item.route || '#'"]
+
+    M --> N{"item.icon exists and is in iconMap?"}
+    N -->|Yes| O["Set adapted.icon = iconMap[item.icon]"]
+    N -->|No| P["Skip icon assignment"]
+
+    O --> Q{"item.children has length?"}
+    P --> Q
+    Q -->|Yes| R["Set adapted.children = item.children.map(adaptMenuItem)"]
+    Q -->|No| S["Skip children assignment"]
+    R -.->|recursive call per child| I
+
+    L --> T{"item.permission exists?"}
+    R --> T
+    S --> T
+    T -->|Yes| U["Set adapted.permission = item.permission"]
+    T -->|No| V["Skip permission assignment"]
+
+    U --> W["Return adapted"]
+    V --> W
