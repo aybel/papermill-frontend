@@ -9,6 +9,17 @@ export interface Role {
   updated_at: string;
 }
 
+export interface RolePermission {
+  id: number;
+  name: string;
+  full_name: string;
+  resource: string;
+  action: string;
+  category: string;
+  description: string;
+  icon?: string;
+}
+
 export const roleService = {
   async getAll(): Promise<Role[]> {
     const response = await api.get(`${API_URL}/${route}`);
@@ -27,6 +38,11 @@ export const roleService = {
   async getById(id: number): Promise<Role> {
     const response = await api.get(`${API_URL}/${route}/${id}`);
     return response.data;
+  },
+
+  async getPermissions(id: number): Promise<RolePermission[]> {
+    const response = await api.get(`${API_URL}/${route}/${id}/permissions`);
+    return response.data?.data ?? response.data ?? [];
   },
 
   async create(data: Role): Promise<Role> {

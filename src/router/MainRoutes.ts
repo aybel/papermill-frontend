@@ -87,7 +87,7 @@ const MainRoutes = {
     {
       path: "budget-requests/view/:id", //Ver solicitud de calendarización presupuestaria
       name: "BudgetRequestsView",
-      component: () => import("@/views/budgets/requests/show.vue"),
+      component: () => import("@/views/Home.vue"),
     },
     {
       path: "budget-request-items/create", //Crear artículo de solicitud presupuestaria
@@ -97,12 +97,12 @@ const MainRoutes = {
     {
       path: "budget-authorization", //Autorización presupuestaria
       name: "BudgetAuthorization",
-      component: () => import("@/views/budgets/authorization/index.vue"),
+      component: () => import("@/views/Home.vue"),
     },
     {
       path: "my-budget", //Mi presupuesto
       name: "MyBudget",
-      component: () => import("@/views/budgets/my-budget/index.vue"),
+      component: () => import("@/views/Home.vue"),
     },
     // ==================== MATERIALES ====================
     {
@@ -118,12 +118,12 @@ const MainRoutes = {
     {
       path: "materials/:id/edit",
       name: "EditMaterial",
-      component: () => import("@/views/materials/edit.vue"),
+      component: () => import("@/views/Home.vue"),
     },
     {
       path: "materials/:id",
       name: "ShowMaterial",
-      component: () => import("@/views/materials/show.vue"),
+      component: () => import("@/views/Home.vue"),
     },
 
     // Categorías de materiales
@@ -270,12 +270,12 @@ const MainRoutes = {
     {
       path: "roles/edit/:id",
       name: "RolesEdit",
-      component: () => import("@/views/roles/edit.vue"),
+      component: () => import("@/views/Home.vue"),
     },
      {
       path: "roles/show/:id",
       name: "RolesShow",
-      component: () => import("@/views/roles/show.vue"),
+      component: () => import("@/views/Home.vue"),
     },
   ],
 };

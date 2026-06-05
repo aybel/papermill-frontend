@@ -4,7 +4,9 @@
     "type": "module",
     "scripts": {
         "dev": "vite --host 0.0.0.0",
-        "build": "vue-tsc --noEmit && vite build",
+        "build": "vite build --mode production",
+        "build:dev": "vite build --mode development",
+        "build:check": "vue-tsc --noEmit && vite build",
         "preview": "vite preview --port 5050 --host 0.0.0.0",
         "typecheck": "vue-tsc --noEmit",
         "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"

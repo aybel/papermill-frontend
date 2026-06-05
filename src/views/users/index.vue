@@ -120,7 +120,7 @@ import type { VForm } from "vuetify/components";
 
 import { DepartmentService, type Department } from "@/services/departmentsService";
 import { userService, type User } from "@/services/usersService";
-import { RoleService, type Role } from "@/services/rolesService";
+import { roleService, type Role } from "@/services/rolesService";
 
 interface Permission {
     id: number;
@@ -243,7 +243,7 @@ async function fetchLookups() {
     try {
         const [departments, roles] = await Promise.all([
             DepartmentService.getAll(),
-            RoleService.getAll(),
+            roleService.getAll(),
         ]);
         departmentOptions.value = departments;
         roleOptions.value = roles;
@@ -268,7 +268,7 @@ async function viewRolePermissions(role: any) {
 
     try {
         selectedRoleName.value = roleName;
-        const permissions = await RoleService.getPermissions(roleId);
+        const permissions = await roleService.getPermissions(roleId);
         selectedRolePermissions.value = permissions || []; // Asegura que siempre sea un array
         permissionsDialog.value = true;
     } catch (error) {
