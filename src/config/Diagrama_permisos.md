@@ -1,8 +1,8 @@
----
-references:
-  - "File: /src/composables/useMenuAdapter.ts"
-generationTime: 2026-06-04T17:32:33.672Z
----
+# Flujo de adaptacion del menu
+
+Referencia: `src/composables/useMenuAdapter.ts`
+
+```mermaid
 flowchart TD
     A["Call useMenuAdapter()"] --> B["Define adaptMenuItem(item)"]
     B --> C["Define adaptMenu(semanticMenu)"]
@@ -17,7 +17,7 @@ flowchart TD
     I --> J["Initialize adapted = {}"]
     J --> K{"item.type?"}
     K -->|header| L["Set adapted.header = item.name"]
-    K -->|"module / group / link"| M["Set adapted.title and adapted.to = item.route || '#'"]
+    K -->|module / group / link| M["Set adapted.title and normalize item.route"]
 
     M --> N{"item.icon exists and is in iconMap?"}
     N -->|Yes| O["Set adapted.icon = iconMap[item.icon]"]
@@ -37,3 +37,4 @@ flowchart TD
 
     U --> W["Return adapted"]
     V --> W
+```
