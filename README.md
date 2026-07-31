@@ -1,73 +1,113 @@
-# .
+# Papermill Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Frontend construido con Vue 3, Vite, TypeScript y Vuetify.
 
-## Recommended IDE Setup
+## Acceso rapido (elige una opcion)
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Con Docker Compose: `http://localhost:8080`
+- En local con Vite (`npm run dev`): `http://localhost:5173`
 
-## Recommended Browser Setup
+Importante: solo una opcion estara activa segun como inicies el proyecto.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Requisitos
 
-## Type Support for `.vue` Imports in TS
+- Docker
+- Docker Compose
+- Node.js 20+ (solo para ejecucion local sin Docker)
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## Ejecución con Docker (recomendado)
 
-## Customize configuration
+Este proyecto ya está dockerizado. Por defecto, el contenedor expone la aplicación en:
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- `http://localhost:8080`
 
-## Project Setup
+### 1. Levantar el proyecto
+
+```sh
+docker compose up --build -d
+```
+
+### 2. Ver logs
+
+```sh
+docker compose logs -f frontend
+```
+
+### 3. Detener contenedores
+
+```sh
+docker compose down
+```
+
+## Variables de build
+
+El `docker-compose.yml` usa este argumento de build:
+
+- `BUILD_MODE` (por defecto: `development`)
+
+La URL del backend se define en un solo lugar por entorno:
+
+- `.env.development`
+- `.env.production`
+
+Ejemplo:
+
+```dotenv
+VITE_API_URL=http://localhost:8088/api/v1
+```
+
+El `Dockerfile` valida que exista `.env.<modo>` y Vite toma las variables desde ese archivo durante el build.
+
+### Ejemplo en PowerShell
+
+```powershell
+docker compose up --build -d
+```
+
+## Ejecución local (sin Docker)
+
+Si necesitas correrlo localmente para desarrollo rápido:
+
+### 1. Instalar dependencias
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### 2. Levantar servidor de desarrollo
 
 ```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+La app quedará disponible en:
 
-```sh
-npm run build
-```
+- `http://localhost:5173`
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+## Scripts disponibles
 
-```sh
-npm run test:unit
-```
+- `npm run dev`: inicia Vite en modo desarrollo.
+- `npm run build`: compila en modo producción.
+- `npm run build:dev`: compila en modo desarrollo.
+- `npm run build:check`: valida tipos con `vue-tsc` y compila.
+- `npm run preview`: previsualiza el build en `http://localhost:5050`.
+- `npm run typecheck`: ejecuta validación de tipos.
+- `npm run lint`: ejecuta ESLint con `--fix`.
 
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
+## Diagnóstico rápido
 
-```sh
-# Install browsers for the first run
-npx playwright install
+| Sintoma | Causa probable | Solucion |
+| --- | --- | --- |
+| Firefox no abre `localhost:5173` | No esta corriendo Vite en local | Ejecuta `npm run dev` y abre `http://localhost:5173` |
+| Firefox no abre `localhost:8080` | El contenedor frontend no esta levantado | Ejecuta `docker compose up --build -d` y revisa con `docker compose ps` |
+| Abre `8080` pero no `5173` | Estas usando Docker (no modo local) | Es normal. Usa `http://localhost:8080` |
+| Abre `5173` pero no `8080` | Estas usando modo local (sin contenedor) | Es normal. Usa `http://localhost:5173` |
+| Cambio de modo y sigue fallando | Quedaron procesos del modo anterior | Deten Docker con `docker compose down` o cierra Vite (`Ctrl + C`) y vuelve a iniciar el modo deseado |
 
-# When testing on CI, must build the project first
-npm run build
+## Estructura principal
 
-# Runs the end-to-end tests
-npm run test:e2e
-# Runs the tests only on Chromium
-npm run test:e2e -- --project=chromium
-# Runs the tests of a specific file
-npm run test:e2e -- tests/example.spec.ts
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+- `src/views`: pantallas de negocio.
+- `src/components`: componentes reutilizables y de dominio.
+- `src/services`: integración con API.
+- `src/stores`: estado global (Pinia).
+- `src/router`: rutas y control de navegación.

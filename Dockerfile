@@ -4,9 +4,7 @@ WORKDIR /app
 
 # Aceptar argumento de build
 ARG BUILD_MODE=development
-ARG VITE_API_URL=http://localhost:8000/api/v1
 ENV BUILD_MODE=$BUILD_MODE
-ENV VITE_API_URL=$VITE_API_URL
 
 # Copiar archivos de dependencias
 COPY package*.json ./
@@ -29,10 +27,10 @@ RUN echo "📝 Verificando archivos Vue restantes..." && \
 RUN echo "📦 Configurando build en modo: $BUILD_MODE" && \
     npm pkg set scripts.build="vite build --mode $BUILD_MODE"
 
-# Escribir la URL de API para el modo de build actual
-RUN echo "VITE_API_URL=$VITE_API_URL" > ".env.$BUILD_MODE" && \
-    echo "VITE_APP_ENV=$BUILD_MODE" >> ".env.$BUILD_MODE" && \
-    echo "🔧 API URL para $BUILD_MODE: $VITE_API_URL"
+# Verificar que exista el archivo de entorno del modo seleccionado
+RUN test -f ".env.$BUILD_MODE" && \
+    echo "🔧 Usando configuración desde .env.$BUILD_MODE" || \
+    (echo "❌ No existe .env.$BUILD_MODE" && exit 1)
 
 # Construir
 RUN npm run build

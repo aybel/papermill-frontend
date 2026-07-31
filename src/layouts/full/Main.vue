@@ -15,12 +15,22 @@ import { useSidebarStore } from "@/stores/sidebarStore";
 
 const { mdAndDown } = useDisplay();
 const sDrawer = ref(true);
-
-// Crea una instancia del store
 const sidebarStore = useSidebarStore();
-onMounted(() => {
+
+// Cargar el menú al montar el componente
+onMounted(async () => {
   sDrawer.value = !mdAndDown.value; // hide on mobile, show on desktop
+   console.log('Cargando menú...');
+  // Cargar menú solo si no está cargado
+  if (!sidebarStore.isMenuLoaded) {
+    console.log('📋 Main.vue: Cargando menú...');
+    await sidebarStore.loadMenu();
+    console.log('📋 Main.vue: Menú cargado:', sidebarStore.filteredMenu.length, 'items');
+  } else {
+    console.log('📋 Main.vue: Menú ya estaba cargado');
+  }
 });
+
 watch(mdAndDown, (val) => {
   sDrawer.value = !val;
 });

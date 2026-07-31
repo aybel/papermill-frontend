@@ -8,54 +8,102 @@ import { showSwal } from '@/utils/alerts';
 
 export const useSidebarStore = defineStore('sidebar', () => {
     const semanticMenu = ref<SemanticMenuItem[]>([]);
+    const adaptedMenu = ref<any[]>([]);
     const loading = ref(false);
     const error = ref<string | null>(null);
+    const isMenuLoaded = ref(false);
     const { adaptMenu } = useMenuAdapter();
 
+    // filteredMenu solo devuelve el menú adaptado, NO recalcula
     const filteredMenu = computed(() => {
-        if (!semanticMenu.value.length) return [];
-        return adaptMenu(semanticMenu.value);
+        console.log('🔍 filteredMenu accedido:', adaptedMenu.value.length, 'items');
+        return adaptedMenu.value;
     });
 
     async function loadMenu(force = false) {
-        if (!force && semanticMenu.value.length) return;
+        // Si ya está cargado y no se fuerza, retornar
+        if (!force && isMenuLoaded.value && adaptedMenu.value.length > 0) {
+            console.log('📦 Store: Usando menú cacheado');
+            return;
+        }
         
         loading.value = true;
         error.value = null;
         
         try {
+            console.log('🔄 Store: Cargando menú desde API...');
             const response = await menuService.getUserMenu();
             semanticMenu.value = response.menu;
 
-            if (!semanticMenu.value.length) {
+            if (!semanticMenu.value || !semanticMenu.value.length) {
                 error.value = 'No tiene permisos asignados al rol';
                 await showSwal({
                     icon: 'warning',
                     title: 'Sin permisos',
                     text: 'No tiene permisos asignados al rol.'
                 });
+                adaptedMenu.value = [];
+                isMenuLoaded.value = true;
+                return;
             }
             
-            console.log('✅ Menú semántico cargado:', semanticMenu.value.length, 'items');
+            // ADAPTAR EL MENÚ UNA SOLA VEZ
+            console.log('🔧 Store: Adaptando menú...');
+            const adapted = adaptMenu(semanticMenu.value);
+            
+            // Verificar rutas antes de congelar
+            console.log('📊 Store: Rutas del menú:');
+            adapted.forEach(item => {
+                console.log(`  - ${item.title}: ${item.to}`);
+            });
+            
+            // CONGELAR para evitar mutaciones
+            adaptedMenu.value = deepFreeze(adapted);
+            isMenuLoaded.value = true;
+            
+            console.log('✅ Store: Menú congelado y listo');
+            
         } catch (err) {
             error.value = 'Error al cargar el menú';
-            console.error(err);
+            console.error('❌ Store: Error:', err);
+            adaptedMenu.value = [];
         } finally {
             loading.value = false;
         }
     }
 
-    // Limpiar menú (útil para logout)
+    function deepFreeze(obj: any): any {
+        if (obj === null || obj === undefined || typeof obj !== 'object') {
+            return obj;
+        }
+        
+        const frozen = Array.isArray(obj) 
+            ? obj.map(item => deepFreeze(item))
+            : Object.freeze(
+                Object.keys(obj).reduce((acc: any, key) => {
+                    acc[key] = deepFreeze(obj[key]);
+                    return acc;
+                }, {} as any)
+              );
+        
+        return frozen;
+    }
+
     function clearMenu() {
+        console.log('🧹 Store: Limpiando menú...');
         semanticMenu.value = [];
+        adaptedMenu.value = [];
+        isMenuLoaded.value = false;
         menuService.clearCache();
     }
 
     return {
         filteredMenu,
         semanticMenu,
+        adaptedMenu,
         loading,
         error,
+        isMenuLoaded,
         loadMenu,
         clearMenu
     };

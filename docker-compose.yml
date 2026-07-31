@@ -7,7 +7,6 @@ services:
       context: .
       args:
         BUILD_MODE: development
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api/v1}
     container_name: vue-frontend
     ports:
       - "8080:3000"  # Accedes por http://localhost:8080
@@ -17,4 +16,4 @@ services:
 
 networks:
   papermill-procurement_papermill-network:
-    external: true
+    driver: bridge

@@ -1,66 +1,86 @@
 <script setup>
+import { computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import Icon from '../Icon.vue';
 
-const props = defineProps({ item: Object, level: Number });
+const props = defineProps({ 
+    item: { type: Object, required: true }, 
+    level: { type: Number, default: 0 } 
+});
+
+const router = useRouter();
+const route = useRoute();
+
+// Ya que las rutas vienen congeladas del store, solo verificamos
+const absolutePath = computed(() => {
+    const to = props.item?.to;
+    if (!to || to === '#' || to === '') return null;
+    
+    // Si ya es absoluta (viene del store congelado), confiar en ella
+    if (typeof to === 'string' && to.startsWith('/')) {
+        return to;
+    }
+    
+    // Para URLs externas
+    if (typeof to === 'string' && (to.startsWith('http://') || to.startsWith('https://'))) {
+        return to;
+    }
+    
+    return null;
+});
+
+const isActive = computed(() => {
+    if (!absolutePath.value) return false;
+    
+    const currentPath = route.path;
+    const itemPath = absolutePath.value;
+    
+    return currentPath === itemPath || currentPath.startsWith(itemPath + '/');
+});
+
+const handleClick = (e) => {
+    e.preventDefault();
+    if (!absolutePath.value) return;
+    
+    router.push(absolutePath.value).catch(err => {
+        if (err.name !== 'NavigationDuplicated') {
+            console.error('Navigation error:', err);
+        }
+    });
+};
 </script>
 
 <template>
-    <!---Single Item-->
-    <v-list-item
-        :href="item.external ? item.to : undefined"
-        :to="!item.external ? item.to : undefined"
-        rounded
+    <v-list-item 
+        v-if="item.external" 
+        :href="item.to" 
+        target="_blank" 
+        :disabled="item.disabled" 
+        rounded 
         class="mb-1"
         color="primary"
-        :disabled="item.disabled"
-        :target="item.external === true ? '_blank' : undefined"
     >
-        <!---If icon-->
         <template v-slot:prepend>
             <Icon :item="item.icon" :level="level" />
         </template>
-        <v-list-item-title class="wrap-text"
-            >{{ item.title }}
-            <span v-if="item.children">
-                <span v-if="item.chip" class="ps-3">
-                    <v-chip
-                        :color="item.chipColor"
-                        :class="'sidebarchip hide-menu bg-' + item.chipBgColor"
-                        :size="item.chipIcon ? 'x-small' : 'x-small'"
-                        :variant="item.chipVariant"
-                        :prepend-icon="item.chipIcon"
-                    >
-                        {{ item.chip }}
-                    </v-chip>
-                </span>
-            </span>
-        </v-list-item-title>
-
-        <!---If Caption-->
-        <v-list-item-subtitle v-if="item.subCaption" class="text-caption mt-n1 hide-menu">
-            {{ item.subCaption }}
-        </v-list-item-subtitle>
-        <!---If any chip or label-->
-        <template v-slot:append v-if="item.chip">
-            <v-chip
-                :color="item.chipColor"
-                :class="'sidebarchip hide-menu bg-' + item.chipBgColor"
-                :size="item.chipIcon ? 'x-small' : 'x-small'"
-                :variant="item.chipVariant"
-                :prepend-icon="item.chipIcon"
-            >
-                {{ item.chip }}
-            </v-chip>
+        <v-list-item-title class="wrap-text">{{ item.title }}</v-list-item-title>
+    </v-list-item>
+    
+    <v-list-item 
+        v-else
+        :active="isActive" 
+        :disabled="item.disabled"
+        @click.prevent="handleClick"
+        rounded 
+        class="mb-1" 
+        color="primary"
+        link
+    >
+        <template v-slot:prepend>
+            <Icon :item="item.icon" :level="level" />
         </template>
+        <v-list-item-title class="wrap-text">
+            {{ item.title }}
+        </v-list-item-title>
     </v-list-item>
 </template>
-
-<style scoped>
-.wrap-text {
-  white-space: normal !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  display: block !important;
-  line-height: 1.2;
-}
-</style>
