@@ -24,7 +24,6 @@ export const catalogsService = {
     const response = await api.get(`${API_URL}/supplier-types`, {
       params: { sort_by: 'name', sort_dir: 'asc', active: 1, },
     });
-    console.log('Supplier Types Response:', response.data.data);    
     return response.data.data;
   },
 };

@@ -30,7 +30,6 @@ export const supplierContactsService = {
         // Puedes pasar cualquier combinación de filtros en params, por ejemplo:
         // { supplier_id: 5, name: 'Juan', email: 'juan@mail.com' }
         const queryString = new URLSearchParams(params).toString();
-        console.log("Query string for search:", queryString);
         const response = await api.get(`${API_URL}/${route}/search?${queryString}`);
         return response.data.data;
     },

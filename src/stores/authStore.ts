@@ -50,12 +50,10 @@ export const useAuthStore = defineStore("auth", {
   actions: {
     async login(email: string, password: string) {
       try {
-        console.log("Llamando a apiClient.post(auth/login)");
         const response = await apiClient.post("auth/login", {
           email,
           password,
         });
-        console.log("Respuesta login:", response);
 
         if (response.status !== 200) {
           throw new Error("Login failed");
@@ -65,11 +63,9 @@ export const useAuthStore = defineStore("auth", {
         // Guardar el token en el estado y en localStorage
         this.token = access_token;
         localStorage.setItem("token", access_token);
-        console.log("Token guardado:", access_token);
 
         // Después de obtener el token, obtenemos los datos del usuario
         await this.fetchUser();
-        console.log("Usuario y permisos cargados");
 
         // Redirigir al usuario a la página que intentaba visitar o al dashboard
 
@@ -99,7 +95,6 @@ export const useAuthStore = defineStore("auth", {
           localStorage.setItem("roles", JSON.stringify(roles));
           localStorage.setItem("permissions", JSON.stringify(permissions));
         } catch (error) {
-          console.log("Error fetching user:", error);
           // Si hay un error (ej. token inválido), limpiamos la sesión
           this.logout();
         }

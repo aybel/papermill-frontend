@@ -105,9 +105,6 @@ const headers: { title: string; key: string; align?: 'start' | 'end' | 'center';
     { title: 'Tipo de material', key: 'material_type.name' },
     { title: 'Unidad de medida', key: 'unit_of_measure.name' },
     { title: 'Stock actual', key: 'current_stock', align: 'end' },
-    { title: 'Stock mínimo', key: 'min_stock', align: 'end' },
-    { title: 'Stock máximo', key: 'max_stock', align: 'end' },
-    { title: 'Punto de reorden', key: 'reorder_point', align: 'end' },
     { title: 'Costo prom. unitario', key: 'avg_unit_cost', align: 'end' },
     { title: 'Último precio de compra', key: 'last_purchase_price', align: 'end' },
     { title: 'Acciones', key: 'actions', sortable: false, align: 'center' }
@@ -116,7 +113,10 @@ const headers: { title: string; key: string; align?: 'start' | 'end' | 'center';
 const loadMaterials = async () => {
     loading.value = true;
     try {
-        const response = await materialService.getAll();
+        const response = await materialService.filter({
+			order_by: { column: 'name', direction: 'asc' },
+			pagination: 15
+        });
         materials.value = response.data || response;
     } catch (error: any) {
         let message = 'Error al cargar materiales';
@@ -192,6 +192,7 @@ function downloadFile(data: any, filename: string, mimeType: string) {
 }
 
 onMounted(() => {
+    console.log("entro a cargar loadmateriales")
     loadMaterials();
 });
 </script>

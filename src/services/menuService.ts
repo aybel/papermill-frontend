@@ -16,7 +16,6 @@ class MenuService {
 
     try {
       const response = await api.get(`${API_URL}/${route}`);
-      //console.log("✅ Menú cargado desde API:", response.data.data.menu);
       this.cache = response.data.data ?? { menu: [] };
       this.lastFetch = Date.now();
 

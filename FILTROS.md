@@ -117,7 +117,7 @@ import {
 } from "@/types";
 
 const API_URL = import.meta.env.VITE_API_URL;
-const route = "[entity-plural]";
+const route = "[entity-plural]"; //en prlural y  minuscula por que asi esta en la api del backend
 
 export const [entity]Service = {
   /** Filtros avanzados (GET) — método preferido */

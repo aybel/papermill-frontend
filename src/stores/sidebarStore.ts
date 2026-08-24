@@ -22,16 +22,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
 
     async function loadMenu(force = false) {
         // Si ya está cargado y no se fuerza, retornar
-        if (!force && isMenuLoaded.value && adaptedMenu.value.length > 0) {
-            console.log('📦 Store: Usando menú cacheado');
-            return;
-        }
         
         loading.value = true;
         error.value = null;
         
         try {
-            console.log('🔄 Store: Cargando menú desde API...');
             const response = await menuService.getUserMenu();
             semanticMenu.value = response.menu;
 
@@ -48,20 +43,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
             }
             
             // ADAPTAR EL MENÚ UNA SOLA VEZ
-            console.log('🔧 Store: Adaptando menú...');
             const adapted = adaptMenu(semanticMenu.value);
-            
-            // Verificar rutas antes de congelar
-            console.log('📊 Store: Rutas del menú:');
-            adapted.forEach(item => {
-                console.log(`  - ${item.title}: ${item.to}`);
-            });
             
             // CONGELAR para evitar mutaciones
             adaptedMenu.value = deepFreeze(adapted);
             isMenuLoaded.value = true;
-            
-            console.log('✅ Store: Menú congelado y listo');
             
         } catch (err) {
             error.value = 'Error al cargar el menú';
@@ -90,7 +76,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
     }
 
     function clearMenu() {
-        console.log('🧹 Store: Limpiando menú...');
         semanticMenu.value = [];
         adaptedMenu.value = [];
         isMenuLoaded.value = false;

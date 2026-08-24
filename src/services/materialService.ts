@@ -1,70 +1,54 @@
-import api from '@/plugins/axios';
-
+import api from "@/plugins/axios";
+import {
+  MaterialListResponse,
+  MaterialSingleResponse,
+  MaterialFilterRequest,
+  buildFilterUrl,
+} from "@/types";
 
 const API_URL = import.meta.env.VITE_API_URL;
-const route="materials";
+const route = "materials";
 
 export interface Material {
-    id: number;
-    sku: string,
-    name: string;
-    description: string,
-    category_id: number | null | undefined;
-    material_type_id:number | null | undefined;
-    unit_of_measure_id: number | null | undefined;
-    current_stock: number;
-    min_stock: number;
-    max_stock: number;
-    safety_stock: number;
-    reorder_point: number;
-    avg_unit_cost: number;
-    last_purchase_price: number;
-    currency_id: number | null | undefined;
-    grammage: number;
-    width: number;
-    length: number;
-    color: string | null | undefined;
-    created_at: string | null;
-    updated_at: string | null;
+  id: number;
+  sku: string;
+  name: string;
+  description: string;
+  category_id: number | null | undefined;
+  material_type_id: number | null | undefined;
+  unit_of_measure_id: number | null | undefined;
+  current_stock: number;
+  min_stock: number;
+  max_stock: number;
+  safety_stock: number;
+  reorder_point: number;
+  avg_unit_cost: number;
+  last_purchase_price: number;
+  currency_id: number | null | undefined;
+  grammage: number;
+  width: number;
+  length: number;
+  color: string | null | undefined;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export const materialService = {
-    async getAll(params: Record<string, string> = {}) {
-        const queryString = new URLSearchParams(params).toString();
-        const endpoint = queryString ? `${API_URL}/${route}?${queryString}` : `${API_URL}/${route}`;
-        const response = await api.get(endpoint);
-        return response.data.data;
-    },
+  async filter(request: MaterialFilterRequest): Promise<MaterialListResponse> {
+    const url = buildFilterUrl(`${API_URL}/${route}/filter`, request);
+    const response = await api.get(url);
+    return response.data;
+  },
 
-    async getById(id: number) {
-        const response = await api.get(`${API_URL}/${route}/${id}`);
-        return response.data.data;
-    },
+  async filterPost(
+    request: MaterialFilterRequest,
+  ): Promise<MaterialListResponse> {
+    const response = await api.post(`${API_URL}/${route}/filter`, request);
+    return response.data;
+  },
 
-    async create(material: Partial<Material>) {
-        const response = await api.post(`${API_URL}/${route}`, material);
-        return response.data;
-    },
-
-    async update(id: number, material: Partial<Material>) {
-        const response = await api.put(`${API_URL}/${route}/${id}`, material);
-        return response.data.data;
-    },
-
-    async delete(id: number) {
-        const response = await api.delete(`${API_URL}/${route}/${id}`);
-        return response.data.data;
-    },
-
-    async exportAs(type: string, filters: Record<string, any> = {}) {
-        const response = await api.post(`${API_URL}/reports/export`,
-            {
-                "type": "materials",
-                "format": type,
-                "filters": filters
-            }, {
-            responseType: 'blob'
-        });
-        return response.data;
-    }
+  async getById(id: number): Promise<MaterialSingleResponse> {
+    const response = await api.get(`${API_URL}/${route}/${id}`);
+    return response.data;
+  },
 };

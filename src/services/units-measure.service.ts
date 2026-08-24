@@ -39,7 +39,6 @@ export const unitsMeasureService = {
 
   async getById(id: number) {
     const response = await api.get(`${API_URL}/${route}/${id}`);
-    console.log("unitsOfMeasureService getById response:", response);
     return response.data.data;
   },
 };
