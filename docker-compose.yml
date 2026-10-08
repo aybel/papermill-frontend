@@ -25,5 +25,5 @@ services:
     networks:
       - papermill-network
 networks:
-  papermill-procurement_papermill-network:
+  papermill-network:
     driver: bridge
