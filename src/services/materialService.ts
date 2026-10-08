@@ -15,8 +15,11 @@ export interface Material {
   name: string;
   description: string;
   category_id: number | null | undefined;
+  category?: { id: number; name: string } | null; 
   material_type_id: number | null | undefined;
+  material_type?: { id: number; name: string } | null;
   unit_of_measure_id: number | null | undefined;
+  unit_of_measure?: { id: number; name: string } | null;
   current_stock: number;
   min_stock: number;
   max_stock: number;
@@ -25,6 +28,7 @@ export interface Material {
   avg_unit_cost: number;
   last_purchase_price: number;
   currency_id: number | null | undefined;
+  currency?: { id: number; name: string; symbol: string } | null;
   grammage: number;
   width: number;
   length: number;
@@ -44,6 +48,19 @@ export const materialService = {
     request: MaterialFilterRequest,
   ): Promise<MaterialListResponse> {
     const response = await api.post(`${API_URL}/${route}/filter`, request);
+    return response.data;
+  },
+
+  async search(
+    q: string,
+    perPage: number = 15,
+    page: number = 1,
+  ): Promise<{ data: { data: Material[]; total?: number } }> {
+    const params = new URLSearchParams();
+    params.append("q", q);
+    params.append("per_page", String(perPage));
+    params.append("page", String(page));
+    const response = await api.get(`${API_URL}/${route}/search?${params}`);
     return response.data;
   },
 

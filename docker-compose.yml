@@ -11,9 +11,19 @@ services:
     ports:
       - "8080:3000"  # Accedes por http://localhost:8080
     networks:
-      - papermill-procurement_papermill-network
+      - papermill-network
     restart: unless-stopped
-
+  frontend-dev:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    networks:
+      - papermill-network
 networks:
   papermill-procurement_papermill-network:
     driver: bridge
