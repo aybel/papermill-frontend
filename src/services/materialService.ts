@@ -15,7 +15,7 @@ export interface Material {
   name: string;
   description: string;
   category_id: number | null | undefined;
-  category?: { id: number; name: string } | null; 
+  category?: { id: number; name: string } | null;
   material_type_id: number | null | undefined;
   material_type?: { id: number; name: string } | null;
   unit_of_measure_id: number | null | undefined;
@@ -67,5 +67,14 @@ export const materialService = {
   async getById(id: number): Promise<MaterialSingleResponse> {
     const response = await api.get(`${API_URL}/${route}/${id}`);
     return response.data;
+  },
+  async create(material: Partial<Material>) {
+    const response = await api.post(`${API_URL}/${route}`, material);
+    return response.data;
+  },
+
+  async update(id: number, material: Partial<Material>) {
+    const response = await api.put(`${API_URL}/${route}/${id}`, material as Partial<Material>);
+    return response.data.data;
   },
 };

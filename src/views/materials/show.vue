@@ -15,12 +15,20 @@
                     </div>
                     <div class="my-sm-0 my-2">
                         <v-btn color="primary" @click="goToEdit" prepend-icon="mdi-pencil">
-                            Editar Material
+                            Material
                         </v-btn>
                     </div>
                 </div>
             </v-card-item>
-
+            <!-- Descripción -->
+            <v-card-text v-if="material.description">
+                <v-divider class="mb-4"></v-divider>
+                <h3 class="text-h6 mb-2">
+                    <v-icon start color="primary">mdi-text-box</v-icon>
+                    Descripción
+                </h3>
+                <p class="text-body-1 text-grey-darken-1">{{ material.description }}</p>
+            </v-card-text>
             <!-- Badges de estado rápido -->
             <v-card-text class="pt-0">
                 <v-chip
@@ -209,7 +217,9 @@
                                 </v-sheet>
                             </div>
                         </v-sheet>
-
+                        
+                        <h3>(Sección en construcción)</h3>
+                        
                         <!-- Historial de Compras Recientes -->
                         <v-sheet class="pa-4 mt-4" elevation="1" rounded="lg">
                             <div class="d-flex align-center justify-space-between mb-4">
@@ -272,16 +282,6 @@
                         </v-sheet>
                     </v-col>
                 </v-row>
-            </v-card-text>
-
-            <!-- Descripción -->
-            <v-card-text v-if="material.description">
-                <v-divider class="mb-4"></v-divider>
-                <h3 class="text-h6 mb-2">
-                    <v-icon start color="primary">mdi-text-box</v-icon>
-                    Descripción
-                </h3>
-                <p class="text-body-1 text-grey-darken-1">{{ material.description }}</p>
             </v-card-text>
         </v-card>
     </div>

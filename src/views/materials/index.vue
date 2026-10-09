@@ -126,7 +126,7 @@ const loadMaterials = async (options: {
     try {
         const orderBy = options.sortBy?.[0]
             ? { column: options.sortBy[0].key, direction: options.sortBy[0].order }
-            : { column: 'name', direction: 'asc' as const };
+            : { column: 'id', direction: 'desc' as const };
 
         const term = search.value?.trim();
         if (term) {

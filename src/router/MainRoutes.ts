@@ -123,7 +123,7 @@ const MainRoutes = {
     {
       path: "materials/:id",
       name: "ShowMaterial",
-      component: () => import("@/views/Home.vue"),
+      component: () => import("@/views/materials/show.vue"),
     },
 
     // Categorías de materiales
